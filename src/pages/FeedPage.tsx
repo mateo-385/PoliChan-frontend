@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { postService } from '@/services/post.service'
+import { PostCard } from '@/components/posts/PostCard'
 import type { Post } from '@/types/post.types'
 
 export function FeedPage() {
@@ -121,54 +122,12 @@ export function FeedPage() {
         ) : (
           /* Posts List */
           posts.map((post) => (
-            <div key={post.id} className="bg-card rounded-lg shadow border p-6">
-              <div className="flex items-start gap-4">
-                {post.authorAvatar ? (
-                  <img
-                    src={post.authorAvatar}
-                    alt={post.authorName}
-                    className="size-10 rounded-full"
-                  />
-                ) : (
-                  <div className="bg-primary text-primary-foreground flex size-10 items-center justify-center rounded-full font-bold">
-                    {post.authorName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{post.authorName}</h3>
-                    <span className="text-muted-foreground text-sm">
-                      · {postService.formatTimeAgo(post.createdAt)}
-                    </span>
-                  </div>
-                  <p
-                    className="mt-2 text-foreground whitespace-pre-wrap cursor-pointer hover:text-foreground/80"
-                    onClick={() => handlePostClick(post.id)}
-                  >
-                    {post.content}
-                  </p>
-                  <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground">
-                    <button
-                      onClick={() => handlePostClick(post.id)}
-                      className="hover:text-primary transition-colors"
-                    >
-                      💬 {post.commentsCount} Comments
-                    </button>
-                    <button
-                      onClick={() => handleToggleLike(post.id)}
-                      className={`hover:text-primary transition-colors ${
-                        post.likedByCurrentUser ? 'text-red-500' : ''
-                      }`}
-                    >
-                      {post.likedByCurrentUser ? '❤️' : '🤍'} {post.likesCount}
-                    </button>
-                    <button className="hover:text-primary transition-colors">
-                      🔗 Share
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <PostCard
+              key={post.id}
+              post={post}
+              onLike={handleToggleLike}
+              onClick={handlePostClick}
+            />
           ))
         )}
       </div>
