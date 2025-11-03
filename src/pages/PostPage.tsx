@@ -32,16 +32,24 @@ export function PostPage() {
   }, [loadPost])
 
   const handleSubmitComment = async () => {
-    if (!id || !commentContent.trim() || isSubmitting) return
+    if (!id || !commentContent.trim() || isSubmitting || !postData) return
 
     try {
       setIsSubmitting(true)
-      await postService.createComment({
+      const newComment = await postService.createComment({
         postId: id,
         content: commentContent,
       })
       setCommentContent('')
-      await loadPost() // Reload post to get updated comments
+      // Update state with new comment without full reload
+      setPostData({
+        ...postData,
+        comments: [...postData.comments, newComment],
+        post: {
+          ...postData.post,
+          commentsCount: postData.post.commentsCount + 1,
+        },
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to post comment')
     } finally {
