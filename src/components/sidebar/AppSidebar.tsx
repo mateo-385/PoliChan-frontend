@@ -9,8 +9,8 @@ import {
   SidebarRail,
 } from '@/components/ui/sidebar'
 import { Home, User, GalleryVerticalEnd } from 'lucide-react'
-import { NavUser } from '@/components/NavUser'
-import { NavMain } from '@/components/NavMain'
+import { NavUser } from './NavUser'
+import { NavMain } from './NavMain'
 import { useLocation } from 'react-router-dom'
 
 const navItems = [

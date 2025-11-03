@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { AppSidebar } from '@/components/AppSidebar'
+import { AppSidebar } from '@/components/sidebar/AppSidebar'
 import { useLocation } from 'react-router-dom'
 
 interface LayoutProps {
