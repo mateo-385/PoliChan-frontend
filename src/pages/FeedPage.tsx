@@ -4,6 +4,8 @@ import { postService } from '@/services/post.service'
 import { PostCard } from '@/components/posts/PostCard'
 import type { Post } from '@/types/post.types'
 
+const MAX_POST_LENGTH = 280
+
 export function FeedPage() {
   const navigate = useNavigate()
   const [posts, setPosts] = useState<Post[]>([])
@@ -76,8 +78,18 @@ export function FeedPage() {
             value={newPostContent}
             onChange={(e) => setNewPostContent(e.target.value)}
             disabled={isSubmitting}
+            maxLength={MAX_POST_LENGTH}
           />
-          <div className="flex justify-end mt-2">
+          <div className="flex justify-between items-center mt-2">
+            <span
+              className={`text-xs ${
+                newPostContent.length > MAX_POST_LENGTH * 0.9
+                  ? 'text-orange-500'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              {newPostContent.length}/{MAX_POST_LENGTH}
+            </span>
             <button
               onClick={handleCreatePost}
               disabled={!newPostContent.trim() || isSubmitting}
