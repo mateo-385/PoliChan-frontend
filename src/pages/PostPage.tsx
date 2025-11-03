@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useState, useEffect, useCallback } from 'react'
+import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import { postService } from '@/services/post.service'
 import type { PostWithComments } from '@/types/post.types'
 
@@ -132,17 +133,26 @@ export function PostPage() {
                 {post.content}
               </p>
               <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground">
-                <span>💬 {post.commentsCount} Comments</span>
+                <span className="flex items-center gap-1.5">
+                  <MessageCircle className="size-4" />
+                  {post.commentsCount}
+                </span>
                 <button
                   onClick={handleToggleLike}
-                  className={`hover:text-primary transition-colors ${
+                  className={`flex items-center gap-1.5 hover:text-primary transition-colors ${
                     post.likedByCurrentUser ? 'text-red-500' : ''
                   }`}
                 >
-                  {post.likedByCurrentUser ? '❤️' : '🤍'} {post.likesCount}
+                  <Heart
+                    className={`size-4 ${
+                      post.likedByCurrentUser ? 'fill-current' : ''
+                    }`}
+                  />
+                  {post.likesCount}
                 </button>
-                <button className="hover:text-primary transition-colors">
-                  🔗 Share
+                <button className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                  <Share2 className="size-4" />
+                  Share
                 </button>
               </div>
             </div>
@@ -212,11 +222,15 @@ export function PostPage() {
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                       <button
                         onClick={() => handleToggleCommentLike(comment.id)}
-                        className={`hover:text-primary transition-colors ${
+                        className={`flex items-center gap-1 hover:text-primary transition-colors ${
                           comment.likedByCurrentUser ? 'text-red-500' : ''
                         }`}
                       >
-                        {comment.likedByCurrentUser ? '❤️' : '🤍'}{' '}
+                        <Heart
+                          className={`size-3 ${
+                            comment.likedByCurrentUser ? 'fill-current' : ''
+                          }`}
+                        />
                         {comment.likesCount}
                       </button>
                       <button className="hover:text-primary transition-colors">
