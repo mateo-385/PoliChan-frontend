@@ -5,7 +5,7 @@ export function ProfilePage() {
   const { user } = useAuth()
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6  ">
       <div className="space-y-6">
         {/* Profile Header */}
         <div className="bg-card rounded-lg shadow border">
