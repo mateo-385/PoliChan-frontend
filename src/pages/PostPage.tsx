@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import { postService } from '@/services/post.service'
 import type { PostWithComments } from '@/types/post.types'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export function PostPage() {
   const { id } = useParams<{ id: string }>()
@@ -91,10 +92,40 @@ export function PostPage() {
     return (
       <div className="p-6 space-y-6">
         <div className="bg-card rounded-lg shadow border p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-12 w-12 bg-muted rounded-full"></div>
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
+          <div className="flex items-start gap-4">
+            <Skeleton className="size-12 rounded-full" />
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-5/6" />
+              </div>
+              <div className="flex items-center gap-6 pt-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-card rounded-lg shadow border p-6">
+          <Skeleton className="h-6 w-32 mb-4" />
+          <div className="space-y-4">
+            <Skeleton className="h-24 w-full rounded-md" />
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-start gap-3 py-3">
+                <Skeleton className="size-8 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
