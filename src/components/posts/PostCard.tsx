@@ -93,7 +93,7 @@ export function PostCard({
                 className="flex items-center gap-1.5 hover:text-primary transition-colors"
               >
                 <Share2 className="size-4" />
-                <span>Share</span>
+                <span>Compartir</span>
               </button>
             </div>
           )}

@@ -40,7 +40,9 @@ export function UserPostsList({
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">No posts yet</div>
+      <div className="text-center py-8 text-muted-foreground">
+        Aún no hay publicaciones
+      </div>
     )
   }
 

@@ -40,28 +40,28 @@ export function PostSubmissionForm({
     const trimmedContent = content.trim()
 
     if (!user) {
-      return 'You must be logged in to post'
+      return 'Debes iniciar sesión para publicar'
     }
 
     if (!trimmedContent) {
-      return 'Post cannot be empty'
+      return 'La publicación no puede estar vacía'
     }
 
     if (trimmedContent.length < MIN_POST_LENGTH) {
-      return 'Post is too short'
+      return 'La publicación es muy corta'
     }
 
     if (hasExcessiveLineBreaks(content)) {
-      return 'Too many consecutive line breaks (max 3)'
+      return 'Demasiados saltos de línea consecutivos (máximo 3)'
     }
 
     if (lastPostTime) {
       const timeSinceLastPost = (Date.now() - lastPostTime) / 1000
       if (timeSinceLastPost < RATE_LIMIT_SECONDS) {
         const waitTime = Math.ceil(RATE_LIMIT_SECONDS - timeSinceLastPost)
-        return `Please wait ${waitTime} second${
+        return `Por favor espera ${waitTime} segundo${
           waitTime !== 1 ? 's' : ''
-        } before posting again`
+        } antes de publicar de nuevo`
       }
     }
 
@@ -89,7 +89,9 @@ export function PostSubmissionForm({
       setError(null)
       onPostCreated()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create post')
+      setError(
+        err instanceof Error ? err.message : 'Error al crear la publicación'
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -110,7 +112,7 @@ export function PostSubmissionForm({
       <div className="bg-card rounded-lg shadow border p-4">
         <textarea
           className="w-full bg-background border rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="What's on your mind?"
+          placeholder="¿Qué estás pensando?"
           rows={3}
           value={newPostContent}
           onChange={(e) => setNewPostContent(e.target.value)}
@@ -133,7 +135,7 @@ export function PostSubmissionForm({
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting && <Spinner className="size-4" />}
-            {isSubmitting ? 'Posting...' : 'Post'}
+            {isSubmitting ? 'Publicando...' : 'Publicar'}
           </button>
         </div>
       </div>
