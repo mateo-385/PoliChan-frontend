@@ -78,20 +78,6 @@ export function PostPage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <div className="bg-card rounded-lg shadow border p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-12 w-12 bg-muted rounded-full"></div>
-            <div className="h-4 bg-muted rounded w-3/4"></div>
-            <div className="h-4 bg-muted rounded w-1/2"></div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   if (error || !postData) {
     return (
       <div className="p-6">
