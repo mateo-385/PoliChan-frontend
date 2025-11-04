@@ -3,19 +3,27 @@ import { mockAuthRepository as authRepository } from '@/repositories/auth.reposi
 import type {
   LoginCredentials,
   RegisterCredentials,
-  AuthResponse,
   User,
+  ApiUser,
 } from '@/types/auth.types'
 
 class AuthService {
-  async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await authRepository.login(credentials)
-    return response
+  private transformApiUserToUser(apiUser: ApiUser): User {
+    return {
+      id: apiUser.id,
+      name: apiUser.fullName,
+      username: apiUser.userName,
+    }
   }
 
-  async register(credentials: RegisterCredentials): Promise<AuthResponse> {
+  async login(credentials: LoginCredentials): Promise<User> {
+    const response = await authRepository.login(credentials)
+    return this.transformApiUserToUser(response.user)
+  }
+
+  async register(credentials: RegisterCredentials): Promise<User> {
     const response = await authRepository.register(credentials)
-    return response
+    return this.transformApiUserToUser(response.user)
   }
 
   async logout(): Promise<void> {
@@ -25,7 +33,7 @@ class AuthService {
   async getCurrentUser(): Promise<User | null> {
     try {
       const response = await authRepository.getCurrentUser()
-      return response.user
+      return this.transformApiUserToUser(response.user)
     } catch {
       return null
     }
