@@ -7,7 +7,10 @@ import type {
 
 export class AuthRepository {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/login', credentials)
+    const response = await api.post<AuthResponse>(
+      '/api/user/login',
+      credentials
+    )
     return response.data
   }
 
