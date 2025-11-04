@@ -8,19 +8,20 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import { Home, User, GalleryVerticalEnd } from 'lucide-react'
+import { Home, User } from 'lucide-react'
 import { NavUser } from './NavUser'
 import { NavMain } from './NavMain'
 import { useLocation } from 'react-router-dom'
+import logo from '@/assets/ipf-logo.png'
 
 const navItems = [
   {
-    title: 'Feed',
+    title: 'Inicio',
     url: '/feed',
     icon: Home,
   },
   {
-    title: 'Profile',
+    title: 'Perfil',
     url: '/profile',
     icon: User,
   },
@@ -41,11 +42,11 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <div className="cursor-default">
-                <div className="bg-primary text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <GalleryVerticalEnd className="size-4" />
+                <div className="  text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                  <img src={logo} alt="" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">PoliChan</span>
+                  <span className="truncate font-semibold">Poli-Chan</span>
                 </div>
               </div>
             </SidebarMenuButton>
