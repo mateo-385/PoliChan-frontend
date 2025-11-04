@@ -39,8 +39,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (credentials: LoginCredentials) => {
     try {
-      const response = await authService.login(credentials)
-      setUser(response.user)
+      const user = await authService.login(credentials)
+      setUser(user)
     } catch (error) {
       console.error('Login error:', error)
       throw error
@@ -49,8 +49,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (credentials: RegisterCredentials) => {
     try {
-      const response = await authService.register(credentials)
-      setUser(response.user)
+      const user = await authService.register(credentials)
+      setUser(user)
     } catch (error) {
       console.error('Register error:', error)
       throw error
