@@ -5,6 +5,7 @@ import { Spinner } from '@/components/ui/spinner'
 const MAX_POST_LENGTH = 280
 const MIN_POST_LENGTH = 1
 const MAX_CONSECUTIVE_LINE_BREAKS = 3
+const MAX_TOTAL_LINE_BREAKS = 5
 const RATE_LIMIT_SECONDS = 3
 
 interface PostSubmissionFormProps {
@@ -23,17 +24,46 @@ export function PostSubmissionForm({
   const [lastPostTime, setLastPostTime] = useState<number | null>(null)
 
   const sanitizeContent = (content: string): string => {
-    return content
+    // Remove potential SQL injection patterns
+    let sanitized = content
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#x27;')
       .replace(/\//g, '&#x2F;')
-  }
+      .replace(/`/g, '&#96;')
 
-  const hasExcessiveLineBreaks = (content: string): boolean => {
-    const pattern = new RegExp(`\\n{${MAX_CONSECUTIVE_LINE_BREAKS + 1},}`)
-    return pattern.test(content)
+    // Remove SQL keywords and patterns (case insensitive)
+    const sqlPatterns = [
+      /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|DECLARE|CAST|CONVERT)\b)/gi,
+      /(--|;|\/\*|\*\/)/g,
+      /(\bOR\b.*=.*)/gi,
+      /(\bAND\b.*=.*)/gi,
+    ]
+
+    sqlPatterns.forEach((pattern) => {
+      sanitized = sanitized.replace(pattern, '')
+    })
+
+    // Limit consecutive line breaks to MAX_CONSECUTIVE_LINE_BREAKS
+    // Create a string with MAX_CONSECUTIVE_LINE_BREAKS + 1 line breaks to search for
+    const excessiveBreaks = '\n'.repeat(MAX_CONSECUTIVE_LINE_BREAKS + 1)
+    const allowedBreaks = '\n'.repeat(MAX_CONSECUTIVE_LINE_BREAKS)
+
+    // Keep replacing until no more excessive line breaks exist
+    while (sanitized.includes(excessiveBreaks)) {
+      sanitized = sanitized.replace(excessiveBreaks, allowedBreaks)
+    }
+
+    // Limit total number of line breaks
+    const lineBreakCount = (sanitized.match(/\n/g) || []).length
+    if (lineBreakCount > MAX_TOTAL_LINE_BREAKS) {
+      // Remove excess line breaks from the end
+      const lines = sanitized.split('\n')
+      sanitized = lines.slice(0, MAX_TOTAL_LINE_BREAKS + 1).join('\n')
+    }
+
+    return sanitized
   }
 
   const validatePost = (content: string): string | null => {
@@ -51,9 +81,7 @@ export function PostSubmissionForm({
       return 'La publicación es muy corta'
     }
 
-    if (hasExcessiveLineBreaks(content)) {
-      return 'Demasiados saltos de línea consecutivos (máximo 3)'
-    }
+    // Remove line break validation since we auto-fix it in sanitization
 
     if (lastPostTime) {
       const timeSinceLastPost = (Date.now() - lastPostTime) / 1000
@@ -73,13 +101,15 @@ export function PostSubmissionForm({
 
     setError(null)
 
-    const validationError = validatePost(newPostContent)
+    // Sanitize content first (this will fix line breaks automatically)
+    const sanitizedContent = sanitizeContent(newPostContent.trim())
+
+    // Then validate the sanitized content
+    const validationError = validatePost(sanitizedContent)
     if (validationError) {
       setError(validationError)
       return
     }
-
-    const sanitizedContent = sanitizeContent(newPostContent.trim())
 
     try {
       setIsSubmitting(true)
@@ -102,7 +132,8 @@ export function PostSubmissionForm({
     const trimmedContent = newPostContent.trim()
     if (!trimmedContent) return true
     if (trimmedContent.length < MIN_POST_LENGTH) return true
-    if (hasExcessiveLineBreaks(newPostContent)) return true
+    if (trimmedContent.length > MAX_POST_LENGTH) return true
+    // Don't disable for line breaks - we auto-fix them
     return false
   }
 
@@ -113,7 +144,7 @@ export function PostSubmissionForm({
         <textarea
           className="w-full bg-background border rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
           placeholder="¿Qué estás pensando?"
-          rows={3}
+          rows={4}
           value={newPostContent}
           onChange={(e) => setNewPostContent(e.target.value)}
           disabled={isSubmitting}
