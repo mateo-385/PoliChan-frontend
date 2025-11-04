@@ -26,7 +26,7 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
       const data = await postService.getPostById(postId)
       setPostData(data)
     } catch {
-      setError('Failed to load post')
+      setError('Error al cargar la publicación')
     } finally {
       setIsLoading(false)
     }
@@ -48,7 +48,11 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
         post: updatedPost,
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to like post')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Error al dar me gusta a la publicación'
+      )
     }
   }
 
@@ -64,7 +68,11 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
         ),
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to like comment')
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Error al dar me gusta al comentario'
+      )
     }
   }
 
@@ -86,7 +94,9 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
       })
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'Failed to refresh comments'
+        err instanceof Error
+          ? err.message
+          : 'Error al actualizar los comentarios'
       )
     }
   }
@@ -209,7 +219,7 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                     </button>
                     <button className="flex items-center gap-1 hover:text-primary transition-colors">
                       <Share2 className="size-4" />
-                      Share
+                      Compartir
                     </button>
                   </div>
 
@@ -229,7 +239,7 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                   {/* Comments List */}
                   {postData.comments.length === 0 ? (
                     <p className="text-muted-foreground text-sm text-center py-8">
-                      No comments yet. Be the first to comment!
+                      Aún no hay comentarios. ¡Sé el primero en comentar!
                     </p>
                   ) : (
                     <div className="space-y-4">
