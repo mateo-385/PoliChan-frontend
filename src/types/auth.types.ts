@@ -5,6 +5,12 @@ export interface User {
   avatar?: string
 }
 
+export interface ApiUser {
+  id: string
+  userName: string
+  fullName: string
+}
+
 export interface LoginCredentials {
   userName: string
   password: string
@@ -18,7 +24,8 @@ export interface RegisterCredentials {
 }
 
 export interface AuthResponse {
-  user: User
+  message: string
+  user: ApiUser
 }
 
 export interface AuthState {
