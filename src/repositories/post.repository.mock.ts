@@ -142,8 +142,9 @@ const mockComments: Comment[] = [
     postId: '1',
     authorId: '2',
     authorName: 'Regular User',
+    authorUsername: 'regularuser',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
-    content: "Haha! XD",
+    content: 'Haha! XD',
     createdAt: new Date(Date.now() - 11 * 60 * 60 * 1000), // 11 hours ago
     likesCount: 4,
     likedByCurrentUser: false,
