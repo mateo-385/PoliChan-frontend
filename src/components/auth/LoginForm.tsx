@@ -33,7 +33,7 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
   }
 
   return (
-    <div className="w-full p-8 space-y-6 bg-card text-card-foreground rounded-lg shadow-md border">
+    <div className="border-t-4 border-gray-400 w-full p-8 space-y-6 bg-card text-card-foreground rounded-lg shadow-md">
       <div className="text-center">
         <h1 className="text-2xl font-bold">Iniciar Sesión</h1>
         <p className="text-muted-foreground">Bienvenido de nuevo a PoliChan</p>
