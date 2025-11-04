@@ -1,14 +1,24 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+// import { useNavigate } from 'react-router-dom'
 import { postService } from '@/services/post.service'
 import { PostCard, PostSubmissionForm } from '@/components/posts'
 import type { Post } from '@/types/post.types'
+import ModalPost from '@/components/ModalPost'
 
 export function FeedPage() {
-  const navigate = useNavigate()
+  // const navigate = useNavigate()
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [newPostContent, setNewPostContent] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
+
+  const handlePostClick = (postId: string) => {
+    setSelectedPostId(postId)
+    setIsModalOpen(true)
+  }
 
   useEffect(() => {
     loadPosts()
@@ -38,10 +48,6 @@ export function FeedPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to like post')
     }
-  }
-
-  const handlePostClick = (postId: string) => {
-    navigate(`/post/${postId}`)
   }
 
   return (
@@ -102,6 +108,11 @@ export function FeedPage() {
             />
           ))
         )}
+        <ModalPost
+          postId={selectedPostId!}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+        />
       </div>
     </div>
   )

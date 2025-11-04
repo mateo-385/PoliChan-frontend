@@ -6,7 +6,7 @@ import { HomePage } from '@/pages/HomePage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { FeedPage } from '@/pages/FeedPage'
-import { PostPage } from '@/pages/PostPage'
+import  { PostPage }  from '@/pages/PostPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 
 export function App() {
