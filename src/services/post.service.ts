@@ -21,6 +21,11 @@ class PostService {
     return await postRepository.getPostById(postId)
   }
 
+  async getPostsByUserId(userId: string): Promise<Post[]> {
+    const allPosts = await postRepository.getAllPosts()
+    return allPosts.filter((post) => post.authorId === userId)
+  }
+
   async createPost(data: CreatePostData): Promise<Post> {
     if (!data.content.trim()) {
       throw new Error('Post content cannot be empty')
