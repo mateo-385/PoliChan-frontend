@@ -2,6 +2,7 @@ export interface Post {
   id: string
   authorId: string
   authorName: string
+  authorUsername: string
   authorAvatar?: string
   content: string
   createdAt: Date
@@ -15,6 +16,7 @@ export interface Comment {
   postId: string
   authorId: string
   authorName: string
+  authorUsername: string
   authorAvatar?: string
   content: string
   createdAt: Date
