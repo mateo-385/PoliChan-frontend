@@ -25,9 +25,9 @@ export function FeedPage() {
   return (
     <div className="p-6   ">
       <div className="mb-5">
-        <h2 className="text-3xl font-bold tracking-tight">Feed</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Inicio</h2>
         <p className="text-muted-foreground">
-          Discover what's happening in your community
+          Descubre qué está pasando en tu comunidad
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export function FeedPage() {
         ) : posts.length === 0 ? (
           <div className="bg-card rounded-lg shadow border p-8 text-center">
             <p className="text-muted-foreground">
-              No posts yet. Be the first to share something!
+              No hay publicaciones aún. ¡Sé el primero en compartir algo!
             </p>
           </div>
         ) : (

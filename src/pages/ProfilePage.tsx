@@ -57,36 +57,38 @@ export function ProfilePage() {
                 <DialogTrigger asChild>
                   <Button variant="outline" className="mt-20">
                     <Pencil className="size-4 mr-2" />
-                    Edit Profile
+                    Editar Perfil
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
-                    <DialogTitle>Edit Profile</DialogTitle>
+                    <DialogTitle>Editar Perfil</DialogTitle>
                     <DialogDescription>
-                      Make changes to your profile here. Click save when you're
-                      done.
+                      Realiza cambios en tu perfil aquí. Haz clic en guardar
+                      cuando termines.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4">
                     <div className="grid gap-3">
                       <label htmlFor="name" className="text-sm font-medium">
-                        Name
+                        Nombre
                       </label>
                       <Input
                         id="name"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        placeholder="Your name"
+                        placeholder="Tu nombre"
                       />
                     </div>
                   </div>
                   <DialogFooter>
                     <DialogClose asChild>
-                      <Button variant="outline">Cancel</Button>
+                      <Button variant="outline">Cancelar</Button>
                     </DialogClose>
                     <DialogClose asChild>
-                      <Button onClick={handleSaveProfile}>Save changes</Button>
+                      <Button onClick={handleSaveProfile}>
+                        Guardar cambios
+                      </Button>
                     </DialogClose>
                   </DialogFooter>
                 </DialogContent>
@@ -96,7 +98,9 @@ export function ProfilePage() {
             <div className="mt-8 pt-6 border-t">
               <div className="text-center">
                 <div className="text-2xl font-bold">{userPosts.length}</div>
-                <div className="text-sm text-muted-foreground">Posts</div>
+                <div className="text-sm text-muted-foreground">
+                  Publicaciones
+                </div>
               </div>
             </div>
           </div>
@@ -104,12 +108,12 @@ export function ProfilePage() {
 
         {/* Profile Info */}
         <div className="bg-card rounded-lg shadow border p-6">
-          <h3 className="text-xl font-semibold mb-4">About</h3>
+          <h3 className="text-xl font-semibold mb-4">Acerca de</h3>
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-md">
               <User className="size-5 text-primary" />
               <div>
-                <p className="text-sm font-medium">Name</p>
+                <p className="text-sm font-medium">Nombre</p>
                 <p className="text-foreground">{user?.name}</p>
               </div>
             </div>
@@ -117,7 +121,7 @@ export function ProfilePage() {
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-md">
               <User className="size-5 text-primary" />
               <div>
-                <p className="text-sm font-medium">Username</p>
+                <p className="text-sm font-medium">Nombre de usuario</p>
                 <p className="text-foreground">@{user?.username}</p>
               </div>
             </div>
@@ -126,7 +130,7 @@ export function ProfilePage() {
 
         {/* User Posts */}
         <div className="bg-card rounded-lg shadow border p-6">
-          <h3 className="text-xl font-semibold mb-4">Posts</h3>
+          <h3 className="text-xl font-semibold mb-4">Publicaciones</h3>
           <UserPostsList
             posts={userPosts}
             isLoading={isLoading}
