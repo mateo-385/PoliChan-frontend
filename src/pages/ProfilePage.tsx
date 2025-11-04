@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { User, Mail, Calendar, Pencil } from 'lucide-react'
+import { User, Mail, Pencil } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Dialog,
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { UserPostsList } from '@/components/posts'
 import { postService } from '@/services/post.service'
 import type { Post } from '@/types/post.types'
 
@@ -64,15 +65,15 @@ export function ProfilePage() {
           <div className="h-32 bg-linear-to-r from-primary/20 to-primary/10 rounded-t-lg" />
           <div className="px-6 pb-6">
             <div className="flex items-end gap-6 -mt-16">
-              <Avatar className="size-32 border-4 border-background">
+              <Avatar className="size-32 border-4 border-background shadow-lg bg-linear-to-br from-primary/80 to-primary">
                 <AvatarImage src={user?.avatar} alt={user?.name} />
-                <AvatarFallback className="bg-primary text-primary-foreground text-5xl font-bold">
+                <AvatarFallback className="bg-linear-to-br from-primary/80 to-primary text-primary-foreground text-5xl font-bold">
                   {user?.name?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 pt-20">
                 <h2 className="text-3xl font-bold">{user?.name}</h2>
-                <p className="text-muted-foreground">{user?.email}</p>
+                <p className="text-muted-foreground">@{user?.username}</p>
               </div>
               <Dialog>
                 <DialogTrigger asChild>
@@ -126,18 +127,10 @@ export function ProfilePage() {
               </Dialog>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t">
+            <div className="mt-8 pt-6 border-t">
               <div className="text-center">
                 <div className="text-2xl font-bold">{userPosts.length}</div>
                 <div className="text-sm text-muted-foreground">Posts</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">1.2K</div>
-                <div className="text-sm text-muted-foreground">Followers</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">324</div>
-                <div className="text-sm text-muted-foreground">Following</div>
               </div>
             </div>
           </div>
@@ -156,18 +149,18 @@ export function ProfilePage() {
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-md">
-              <Mail className="size-5 text-primary" />
+              <User className="size-5 text-primary" />
               <div>
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-foreground">{user?.email}</p>
+                <p className="text-sm font-medium">Username</p>
+                <p className="text-foreground">@{user?.username}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-md">
-              <Calendar className="size-5 text-primary" />
+              <Mail className="size-5 text-primary" />
               <div>
-                <p className="text-sm font-medium">User ID</p>
-                <p className="text-foreground">{user?.id}</p>
+                <p className="text-sm font-medium">Email</p>
+                <p className="text-foreground">{user?.email}</p>
               </div>
             </div>
           </div>
@@ -176,41 +169,11 @@ export function ProfilePage() {
         {/* User Posts */}
         <div className="bg-card rounded-lg shadow border p-6">
           <h3 className="text-xl font-semibold mb-4">Posts</h3>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="p-4 border rounded-md animate-pulse">
-                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-muted rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          ) : userPosts.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No posts yet
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {userPosts.map((post) => (
-                <div
-                  key={post.id}
-                  className="p-4 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer"
-                  onClick={() => handlePostClick(post.id)}
-                >
-                  <p className="text-foreground whitespace-pre-wrap">
-                    {post.content}
-                  </p>
-                  <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                    <span>💬 {post.commentsCount} Comments</span>
-                    <span>❤️ {post.likesCount} Likes</span>
-                    <span className="ml-auto">
-                      {postService.formatTimeAgo(post.createdAt)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          <UserPostsList
+            posts={userPosts}
+            isLoading={isLoading}
+            onPostClick={handlePostClick}
+          />
         </div>
       </div>
     </div>
