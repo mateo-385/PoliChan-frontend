@@ -39,7 +39,7 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid w-full items-center gap-3">
-          <Label htmlFor="userName">Username</Label>
+          <Label htmlFor="userName">Nombre de usuario</Label>
           <Input
             id="userName"
             type="text"
@@ -51,7 +51,7 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
         </div>
 
         <div className="grid w-full items-center gap-3">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Contraseña</Label>
           <Input
             id="password"
             type="password"
@@ -70,18 +70,18 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
 
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Spinner className="size-4 mr-2" />}
-          {isLoading ? 'Signing in...' : 'Sign In'}
+          {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
         </Button>
       </form>
 
       <div className="text-center text-sm">
-        <span className="text-muted-foreground">Don't have an account? </span>
+        <span className="text-muted-foreground">¿No tienes una cuenta? </span>
         <Button
           variant="link"
           onClick={onNavigateToRegister}
           className="p-0 h-auto"
         >
-          Sign up
+          Regístrate
         </Button>
       </div>
     </div>

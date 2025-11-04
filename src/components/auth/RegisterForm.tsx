@@ -32,7 +32,7 @@ export function RegisterForm({
     setError('')
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError('Las contraseñas no coinciden')
       return
     }
 
@@ -57,32 +57,32 @@ export function RegisterForm({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div className="grid w-full items-center gap-3">
-            <Label htmlFor="firstName">First Name</Label>
+            <Label htmlFor="firstName">Nombre</Label>
             <Input
               id="firstName"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="John"
+              placeholder="Juan"
               required
             />
           </div>
 
           <div className="grid w-full items-center gap-3">
-            <Label htmlFor="lastName">Last Name</Label>
+            <Label htmlFor="lastName">Apellido</Label>
             <Input
               id="lastName"
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              placeholder="Doe"
+              placeholder="Pérez"
               required
             />
           </div>
         </div>
 
         <div className="grid w-full items-center gap-3">
-          <Label htmlFor="userName">Username</Label>
+          <Label htmlFor="userName">Nombre de usuario</Label>
           <InputGroup>
             <InputGroupAddon>
               <span>@</span>
@@ -99,7 +99,7 @@ export function RegisterForm({
         </div>
 
         <div className="grid w-full items-center gap-3">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Contraseña</Label>
           <Input
             id="password"
             type="password"
@@ -112,7 +112,7 @@ export function RegisterForm({
         </div>
 
         <div className="grid w-full items-center gap-3">
-          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
           <Input
             id="confirmPassword"
             type="password"
@@ -132,18 +132,18 @@ export function RegisterForm({
 
         <Button type="submit" disabled={isLoading} className="w-full">
           {isLoading && <Spinner className="size-4 mr-2" />}
-          {isLoading ? 'Creating account...' : 'Sign Up'}
+          {isLoading ? 'Creando cuenta...' : 'Registrarse'}
         </Button>
       </form>
 
       <div className="text-center text-sm">
-        <span className="text-muted-foreground">Already have an account? </span>
+        <span className="text-muted-foreground">¿Ya tienes una cuenta? </span>
         <Button
           variant="link"
           onClick={onNavigateToLogin}
           className="p-0 h-auto"
         >
-          Sign in
+          Inicia sesión
         </Button>
       </div>
     </div>
