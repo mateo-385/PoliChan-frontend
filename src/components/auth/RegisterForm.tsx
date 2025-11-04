@@ -1,5 +1,14 @@
 import { useState } from 'react'
 import type { RegisterCredentials } from '@/types/auth.types'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from '@/components/ui/input-group'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 
 interface RegisterFormProps {
   onSubmit: (credentials: RegisterCredentials) => Promise<void>
@@ -10,8 +19,9 @@ export function RegisterForm({
   onSubmit,
   onNavigateToLogin,
 }: RegisterFormProps) {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [userName, setUserName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -29,7 +39,7 @@ export function RegisterForm({
     setIsLoading(true)
 
     try {
-      await onSubmit({ name, email, password })
+      await onSubmit({ firstName, lastName, userName, password })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {
@@ -45,64 +55,72 @@ export function RegisterForm({
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium">
-            Name
-          </label>
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="w-full px-3 py-2 mt-1 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="grid w-full items-center gap-3">
+            <Label htmlFor="firstName">First Name</Label>
+            <Input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="John"
+              required
+            />
+          </div>
+
+          <div className="grid w-full items-center gap-3">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Doe"
+              required
+            />
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full px-3 py-2 mt-1 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+        <div className="grid w-full items-center gap-3">
+          <Label htmlFor="userName">Username</Label>
+          <InputGroup>
+            <InputGroupAddon>
+              <span>@</span>
+            </InputGroupAddon>
+            <InputGroupInput
+              id="userName"
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="mateocuella"
+              required
+            />
+          </InputGroup>
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium">
-            Password
-          </label>
-          <input
+        <div className="grid w-full items-center gap-3">
+          <Label htmlFor="password">Password</Label>
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
             required
             minLength={6}
-            className="w-full px-3 py-2 mt-1 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="confirmPassword"
-            className="block text-sm font-medium"
-          >
-            Confirm Password
-          </label>
-          <input
+        <div className="grid w-full items-center gap-3">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
             id="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="••••••••"
             required
             minLength={6}
-            className="w-full px-3 py-2 mt-1 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
 
@@ -112,23 +130,21 @@ export function RegisterForm({
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <Button type="submit" disabled={isLoading} className="w-full">
+          {isLoading && <Spinner className="size-4 mr-2" />}
           {isLoading ? 'Creating account...' : 'Sign Up'}
-        </button>
+        </Button>
       </form>
 
       <div className="text-center text-sm">
         <span className="text-muted-foreground">Already have an account? </span>
-        <button
+        <Button
+          variant="link"
           onClick={onNavigateToLogin}
-          className="text-primary hover:underline"
+          className="p-0 h-auto"
         >
           Sign in
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import type { LoginCredentials } from '@/types/auth.types'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 
 interface LoginFormProps {
   onSubmit: (credentials: LoginCredentials) => Promise<void>
@@ -7,7 +11,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
-  const [email, setEmail] = useState('')
+  const [userName, setUserName] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -18,7 +22,7 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
     setIsLoading(true)
 
     try {
-      await onSubmit({ email, password })
+      await onSubmit({ userName, password })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
@@ -34,31 +38,27 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+        <div className="grid w-full items-center gap-3">
+          <Label htmlFor="userName">Username</Label>
+          <Input
+            id="userName"
+            type="text"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            placeholder="mateocuella"
             required
-            className="w-full px-3 py-2 mt-1 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium">
-            Password
-          </label>
-          <input
+        <div className="grid w-full items-center gap-3">
+          <Label htmlFor="password">Password</Label>
+          <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
             required
-            className="w-full px-3 py-2 mt-1 bg-background border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
 
@@ -68,23 +68,21 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <Button type="submit" disabled={isLoading} className="w-full">
+          {isLoading && <Spinner className="size-4 mr-2" />}
           {isLoading ? 'Signing in...' : 'Sign In'}
-        </button>
+        </Button>
       </form>
 
       <div className="text-center text-sm">
         <span className="text-muted-foreground">Don't have an account? </span>
-        <button
+        <Button
+          variant="link"
           onClick={onNavigateToRegister}
-          className="text-primary hover:underline"
+          className="p-0 h-auto"
         >
           Sign up
-        </button>
+        </Button>
       </div>
     </div>
   )

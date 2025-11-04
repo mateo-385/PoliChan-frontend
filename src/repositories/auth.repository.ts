@@ -12,7 +12,7 @@ export class AuthRepository {
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/register', credentials)
+    const response = await api.post<AuthResponse>('/api/users/', credentials)
     return response.data
   }
 

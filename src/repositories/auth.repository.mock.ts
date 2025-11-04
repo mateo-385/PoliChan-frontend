@@ -5,38 +5,33 @@ import type {
   User,
 } from '@/types/auth.types'
 
-// Mock users database
 const mockUsers: User[] = [
   {
     id: '1',
-    email: 'admin@polichan.com',
     name: 'Admin User',
     username: 'admin',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
   },
   {
     id: '2',
-    email: 'user@polichan.com',
     name: 'Regular User',
     username: 'regularuser',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
   },
 ]
 
-// Mock password: "password123" for all users
 const MOCK_PASSWORD = 'password123'
 
 export class MockAuthRepository {
   private currentUser: User | null = null
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Simulate network delay
     await this.delay(500)
 
-    const user = mockUsers.find((u) => u.email === credentials.email)
+    const user = mockUsers.find((u) => u.username === credentials.userName)
 
     if (!user || credentials.password !== MOCK_PASSWORD) {
-      throw new Error('Invalid email or password')
+      throw new Error('Invalid username or password')
     }
 
     this.currentUser = user
@@ -44,22 +39,20 @@ export class MockAuthRepository {
   }
 
   async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    // Simulate network delay
     await this.delay(500)
 
-    // Check if user already exists
-    const existingUser = mockUsers.find((u) => u.email === credentials.email)
+    const existingUser = mockUsers.find(
+      (u) => u.username === credentials.userName
+    )
     if (existingUser) {
-      throw new Error('User already exists')
+      throw new Error('User already exists with this username')
     }
 
-    // Create new user
     const newUser: User = {
       id: String(mockUsers.length + 1),
-      email: credentials.email,
-      name: credentials.name,
-      username: credentials.email.split('@')[0], // Use email prefix as username
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${credentials.name}`,
+      name: `${credentials.firstName} ${credentials.lastName}`,
+      username: credentials.userName,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${credentials.userName}`,
     }
 
     mockUsers.push(newUser)

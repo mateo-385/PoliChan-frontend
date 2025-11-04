@@ -1,20 +1,20 @@
 export interface User {
   id: string
-  email: string
   name: string
   username: string
   avatar?: string
 }
 
 export interface LoginCredentials {
-  email: string
+  userName: string
   password: string
 }
 
 export interface RegisterCredentials {
-  email: string
+  firstName: string
+  lastName: string
+  userName: string
   password: string
-  name: string
 }
 
 export interface AuthResponse {
