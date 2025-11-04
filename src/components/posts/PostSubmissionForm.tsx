@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
+import { Spinner } from '@/components/ui/spinner'
 
 const MAX_POST_LENGTH = 280
 const MIN_POST_LENGTH = 1
@@ -129,8 +130,9 @@ export function PostSubmissionForm({
           <button
             onClick={handleCreatePost}
             disabled={isPostDisabled()}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
+            {isSubmitting && <Spinner className="size-4" />}
             {isSubmitting ? 'Posting...' : 'Post'}
           </button>
         </div>
