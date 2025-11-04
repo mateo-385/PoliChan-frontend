@@ -116,6 +116,7 @@
   }
   html {
     @apply overscroll-none scroll-smooth;
+    @apply overflow-y-scroll;
   }
   body {
     @apply bg-background text-foreground overscroll-none;
