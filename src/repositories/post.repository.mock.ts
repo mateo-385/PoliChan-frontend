@@ -12,6 +12,7 @@ const mockPosts: Post[] = [
     id: '1',
     authorId: '1',
     authorName: 'Admin User',
+    authorUsername: 'admin',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
     content:
       '🎉 Welcome to PoliChan! This is a sample post to demonstrate the platform. Feel free to like, comment, and engage with the community!',
@@ -24,6 +25,7 @@ const mockPosts: Post[] = [
     id: '2',
     authorId: '2',
     authorName: 'Regular User',
+    authorUsername: 'regularuser',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
     content:
       'Just finished a great coding session! 💻 Anyone else working on interesting projects today?',
@@ -36,6 +38,7 @@ const mockPosts: Post[] = [
     id: '3',
     authorId: '1',
     authorName: 'Admin User',
+    authorUsername: 'admin',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
     content:
       "Quick reminder: Be kind and respectful to everyone in the community. Let's keep this a positive space for all! 🤝",
@@ -48,6 +51,7 @@ const mockPosts: Post[] = [
     id: '4',
     authorId: '2',
     authorName: 'Regular User',
+    authorUsername: 'regularuser',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
     content:
       'Does anyone have recommendations for learning React? Looking to improve my frontend skills! 🚀',
@@ -60,6 +64,7 @@ const mockPosts: Post[] = [
     id: '5',
     authorId: '1',
     authorName: 'Admin User',
+    authorUsername: 'admin',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
     content:
       'Check out the new features we just released! Dark mode is now available. Toggle it from the sidebar. 🌙',
@@ -77,6 +82,7 @@ const mockComments: Comment[] = [
     postId: '1',
     authorId: '2',
     authorName: 'Regular User',
+    authorUsername: 'regularuser',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
     content: 'This is awesome! Thanks for creating this platform! 🎉',
     createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hour ago
@@ -88,6 +94,7 @@ const mockComments: Comment[] = [
     postId: '1',
     authorId: '1',
     authorName: 'Admin User',
+    authorUsername: 'admin',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
     content: "Thank you! We're excited to have you here! 🙌",
     createdAt: new Date(Date.now() - 55 * 60 * 1000), // 55 minutes ago
@@ -99,6 +106,7 @@ const mockComments: Comment[] = [
     postId: '1',
     authorId: '2',
     authorName: 'Regular User',
+    authorUsername: 'regularuser',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
     content: 'Looking forward to connecting with everyone! 😊',
     createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
@@ -110,6 +118,7 @@ const mockComments: Comment[] = [
     postId: '2',
     authorId: '1',
     authorName: 'Admin User',
+    authorUsername: 'admin',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
     content: 'Working on some new features for the platform! Stay tuned! 🚀',
     createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
@@ -121,6 +130,7 @@ const mockComments: Comment[] = [
     postId: '3',
     authorId: '2',
     authorName: 'Regular User',
+    authorUsername: 'regularuser',
     authorAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
     content: "Absolutely! Let's keep it positive! 💪",
     createdAt: new Date(Date.now() - 11 * 60 * 60 * 1000), // 11 hours ago
@@ -169,6 +179,7 @@ export class MockPostRepository {
       id: String(mockPosts.length + 1),
       authorId: this.currentUserId,
       authorName: 'Current User',
+      authorUsername: 'currentuser',
       authorAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${this.currentUserId}`,
       content: data.content,
       createdAt: new Date(),
@@ -198,6 +209,7 @@ export class MockPostRepository {
       postId: data.postId,
       authorId: this.currentUserId,
       authorName: 'Current User',
+      authorUsername: 'currentuser',
       authorAvatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${this.currentUserId}`,
       content: data.content,
       createdAt: new Date(),

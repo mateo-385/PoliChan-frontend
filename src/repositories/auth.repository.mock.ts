@@ -11,12 +11,14 @@ const mockUsers: User[] = [
     id: '1',
     email: 'admin@polichan.com',
     name: 'Admin User',
+    username: 'admin',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
   },
   {
     id: '2',
     email: 'user@polichan.com',
     name: 'Regular User',
+    username: 'regularuser',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=User',
   },
 ]
@@ -56,6 +58,7 @@ export class MockAuthRepository {
       id: String(mockUsers.length + 1),
       email: credentials.email,
       name: credentials.name,
+      username: credentials.email.split('@')[0], // Use email prefix as username
       avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${credentials.name}`,
     }
 
