@@ -1,17 +1,11 @@
-import { useState, useEffect } from 'react'
-// import { useNavigate } from 'react-router-dom'
-import { postService } from '@/services/post.service'
+import { useState } from 'react'
 import { PostCard, PostSubmissionForm } from '@/components/posts'
-import type { Post } from '@/types/post.types'
 import ModalPost from '@/components/ModalPost'
+import { usePosts } from '@/hooks/use-posts'
 
 export function FeedPage() {
-  // const navigate = useNavigate()
-  const [posts, setPosts] = useState<Post[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [newPostContent, setNewPostContent] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { posts, isLoading, error, toggleLike, createPost, refetch } =
+    usePosts()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
 
@@ -20,34 +14,12 @@ export function FeedPage() {
     setIsModalOpen(true)
   }
 
-  useEffect(() => {
-    loadPosts()
-  }, [])
-
-  const loadPosts = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      const data = await postService.getAllPosts()
-      setPosts(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load posts')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   const handlePostSubmit = async (content: string) => {
-    await postService.createPost({ content })
+    await createPost(content)
   }
 
   const handleToggleLike = async (postId: string) => {
-    try {
-      const updatedPost = await postService.toggleLike(postId)
-      setPosts(posts.map((p) => (p.id === postId ? updatedPost : p)))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to like post')
-    }
+    await toggleLike(postId)
   }
 
   return (
@@ -63,7 +35,7 @@ export function FeedPage() {
         {/* Create Post */}
         <PostSubmissionForm
           onSubmit={handlePostSubmit}
-          onPostCreated={loadPosts}
+          onPostCreated={refetch}
         />
 
         {/* Error Message */}

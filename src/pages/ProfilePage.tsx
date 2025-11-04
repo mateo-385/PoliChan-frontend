@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
-import { User, Mail, Pencil } from 'lucide-react'
+import { User, Pencil } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Dialog,
@@ -16,45 +15,24 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { UserPostsList } from '@/components/posts'
-import { postService } from '@/services/post.service'
-import type { Post } from '@/types/post.types'
+import { useUserPosts } from '@/hooks/use-posts'
+import ModalPost from '@/components/ModalPost'
 
 export function ProfilePage() {
   const { user } = useAuth()
-  const navigate = useNavigate()
-  const [userPosts, setUserPosts] = useState<Post[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { posts: userPosts, isLoading } = useUserPosts(user?.id)
   const [editName, setEditName] = useState(user?.name || '')
-  const [editEmail, setEditEmail] = useState(user?.email || '')
-
-  useEffect(() => {
-    if (user?.id) {
-      loadUserPosts()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id])
-
-  const loadUserPosts = async () => {
-    if (!user?.id) return
-
-    try {
-      setIsLoading(true)
-      const posts = await postService.getPostsByUserId(user.id)
-      setUserPosts(posts)
-    } catch (err) {
-      console.error('Failed to load user posts:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
 
   const handleSaveProfile = () => {
     // TODO: Implement profile update logic
-    console.log('Saving profile:', { name: editName, email: editEmail })
+    console.log('Saving profile:', { name: editName })
   }
 
   const handlePostClick = (postId: string) => {
-    navigate(`/post/${postId}`)
+    setSelectedPostId(postId)
+    setIsModalOpen(true)
   }
 
   return (
@@ -65,7 +43,7 @@ export function ProfilePage() {
           <div className="h-32 bg-linear-to-r from-primary/20 to-primary/10 rounded-t-lg" />
           <div className="px-6 pb-6">
             <div className="flex items-end gap-6 -mt-16">
-              <Avatar className="size-32 border-4 border-background shadow-lg bg-linear-to-br from-primary/80 to-primary">
+              <Avatar className="size-32  bg-accent">
                 <AvatarImage src={user?.avatar} alt={user?.name} />
                 <AvatarFallback className="bg-linear-to-br from-primary/80 to-primary text-primary-foreground text-5xl font-bold">
                   {user?.name?.charAt(0).toUpperCase()}
@@ -100,18 +78,6 @@ export function ProfilePage() {
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         placeholder="Your name"
-                      />
-                    </div>
-                    <div className="grid gap-3">
-                      <label htmlFor="email" className="text-sm font-medium">
-                        Email
-                      </label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={editEmail}
-                        onChange={(e) => setEditEmail(e.target.value)}
-                        placeholder="your.email@example.com"
                       />
                     </div>
                   </div>
@@ -155,14 +121,6 @@ export function ProfilePage() {
                 <p className="text-foreground">@{user?.username}</p>
               </div>
             </div>
-
-            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-md">
-              <Mail className="size-5 text-primary" />
-              <div>
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-foreground">{user?.email}</p>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -176,6 +134,12 @@ export function ProfilePage() {
           />
         </div>
       </div>
+
+      <ModalPost
+        postId={selectedPostId!}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   )
 }
