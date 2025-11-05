@@ -97,15 +97,18 @@ export function PostSubmissionForm({
   }
 
   const handleCreatePost = async () => {
+    console.log('handleCreatePost called', { isSubmitting, newPostContent })
     if (isSubmitting) return
 
     setError(null)
 
     // Sanitize content first (this will fix line breaks automatically)
     const sanitizedContent = sanitizeContent(newPostContent.trim())
+    console.log('Sanitized content:', sanitizedContent)
 
     // Then validate the sanitized content
     const validationError = validatePost(sanitizedContent)
+    console.log('Validation error:', validationError)
     if (validationError) {
       setError(validationError)
       return
@@ -113,12 +116,15 @@ export function PostSubmissionForm({
 
     try {
       setIsSubmitting(true)
+      console.log('Calling onSubmit with sanitized content...')
       await onSubmit(sanitizedContent)
+      console.log('onSubmit completed successfully')
       setNewPostContent('')
       setLastPostTime(Date.now())
       setError(null)
       onPostCreated()
     } catch (err) {
+      console.error('Error in handleCreatePost:', err)
       setError(
         err instanceof Error ? err.message : 'Error al crear la publicación'
       )
