@@ -8,12 +8,14 @@ import type {
 const mockUsers: ApiUser[] = [
   {
     id: '1',
-    fullName: 'Admin User',
+    firstName: 'Admin',
+    lastName: 'User',
     userName: 'admin',
   },
   {
     id: '2',
-    fullName: 'Regular User',
+    firstName: 'Regular',
+    lastName: 'User',
     userName: 'regularuser',
   },
 ]
@@ -34,7 +36,7 @@ export class MockAuthRepository {
 
     this.currentUser = user
     return {
-      message: 'Usuario autenticado exitosamente',
+      token: 'mock-jwt-token-' + user.id,
       user,
     }
   }
@@ -51,7 +53,8 @@ export class MockAuthRepository {
 
     const newUser: ApiUser = {
       id: String(mockUsers.length + 1),
-      fullName: `${credentials.firstName} ${credentials.lastName}`,
+      firstName: credentials.firstName,
+      lastName: credentials.lastName,
       userName: credentials.userName,
     }
 
@@ -59,7 +62,7 @@ export class MockAuthRepository {
     this.currentUser = newUser
 
     return {
-      message: 'Usuario registrado exitosamente',
+      token: 'mock-jwt-token-' + newUser.id,
       user: newUser,
     }
   }
@@ -77,7 +80,7 @@ export class MockAuthRepository {
     }
 
     return {
-      message: 'Usuario obtenido exitosamente',
+      token: 'mock-jwt-token-' + this.currentUser.id,
       user: this.currentUser,
     }
   }

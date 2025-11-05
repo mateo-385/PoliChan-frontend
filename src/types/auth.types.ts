@@ -7,8 +7,9 @@ export interface User {
 
 export interface ApiUser {
   id: string
+  firstName: string
+  lastName: string
   userName: string
-  fullName: string
 }
 
 export interface LoginCredentials {
