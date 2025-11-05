@@ -1,4 +1,10 @@
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { postService } from '@/services/post.service'
 import type { PostWithComments } from '@/types/post.types'
 import { DialogOverlay } from '@radix-ui/react-dialog'
@@ -7,6 +13,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import { PostSubmissionForm } from '@/components/posts'
+import { useAuth } from '@/hooks/use-auth'
+import { getAvatarUrl, getAvatarColor, getInitials } from '@/lib/avatar'
 
 type ModalPostProps = {
   isOpen: boolean
@@ -16,36 +24,53 @@ type ModalPostProps = {
 
 export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
   const [postData, setPostData] = useState<PostWithComments | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { user } = useAuth()
 
   const loadPost = useCallback(async () => {
+    if (!postId) return
+
     try {
       setIsLoading(true)
       setError(null)
       const data = await postService.getPostById(postId)
       setPostData(data)
-    } catch {
+    } catch (err) {
       setError('Error al cargar la publicación')
+      console.error('Error loading post:', err)
     } finally {
       setIsLoading(false)
     }
   }, [postId])
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && postId) {
       loadPost()
     }
-  }, [isOpen, loadPost])
+  }, [isOpen, loadPost, postId])
 
   const handleToggleLike = async () => {
-    if (!postId || !postData) return
+    if (!postId || !postData || !user) return
 
     try {
-      const updatedPost = await postService.toggleLike(postId)
+      const isLiked = postData.post.likedByCurrentUser || false
+
+      if (isLiked) {
+        await postService.unlikePost(postId, user.id)
+      } else {
+        await postService.likePost(postId, user.id)
+      }
+
       setPostData({
         ...postData,
-        post: updatedPost,
+        post: {
+          ...postData.post,
+          likedByCurrentUser: !isLiked,
+          likesCount: isLiked
+            ? postData.post.likesCount - 1
+            : postData.post.likesCount + 1,
+        },
       })
     } catch (err) {
       setError(
@@ -53,6 +78,7 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
           ? err.message
           : 'Error al dar me gusta a la publicación'
       )
+      await loadPost()
     }
   }
 
@@ -80,10 +106,8 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
     if (!postData) return
 
     try {
-      // Only fetch updated post data to get the new comments
       const updatedData = await postService.getPostById(postId)
 
-      // Update only comments and comment count, preserve the rest of the post data
       setPostData({
         ...postData,
         post: {
@@ -105,6 +129,10 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
         <DialogContent className="max-w-2xl w-full max-h-[80vh] p-0 ">
+          <DialogTitle className="sr-only">Publicación</DialogTitle>
+          <DialogDescription className="sr-only">
+            Vista detallada de la publicación y sus comentarios
+          </DialogDescription>
           <ScrollArea className="h-[80vh] flex flex-col p-6 gap-4">
             {error && <p className="text-red-500">{error}</p>}
             {isLoading ? (
@@ -160,33 +188,56 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                 </div>
               </div>
             ) : (
-              postData && (
+              postData &&
+              postData.post &&
+              postData.post.user && (
                 <>
-                  <DialogHeader className="flex-row mb-2">
-                    {postData.post.authorAvatar ? (
-                      <img
-                        src={postData.post.authorAvatar}
-                        alt={postData.post.authorName}
-                        className="size-12 rounded-full mr-2"
-                      />
-                    ) : (
-                      <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center rounded-full font-bold text-lg">
-                        {postData.post.authorName.charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                  <DialogHeader className="flex-row mb-2 gap-3">
+                    <img
+                      src={getAvatarUrl(postData.post.user.id)}
+                      alt={`${postData.post.user.firstName} ${postData.post.user.lastName}`}
+                      className="size-12 rounded-full shrink-0"
+                      style={{
+                        backgroundColor: getAvatarColor(postData.post.user.id),
+                      }}
+                      onError={(e) => {
+                        // Fallback to initials if image fails to load
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        const fallback =
+                          target.nextElementSibling as HTMLElement
+                        if (fallback) fallback.style.display = 'flex'
+                      }}
+                    />
+                    <div
+                      className="size-12 items-center justify-center rounded-full font-bold text-lg shrink-0 hidden text-white"
+                      style={{
+                        backgroundColor: getAvatarColor(postData.post.user.id),
+                      }}
+                    >
+                      {getInitials(
+                        postData.post.user.firstName,
+                        postData.post.user.lastName
+                      )}
+                    </div>
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col">
                         <h3 className="font-semibold">
-                          {postData.post.authorName}
+                          {`${postData.post.user.firstName} ${postData.post.user.lastName}`}
                           <span className="text-muted-foreground text-sm">
                             {' '}
                             ·{' '}
-                            {postService.formatTimeAgo(postData.post.createdAt)}
+                            {postService.formatTimeAgo(
+                              new Date(postData.post.timestamps.createdAt.value)
+                            )}
                           </span>
                         </h3>
 
                         <span className="text-muted-foreground text-sm">
-                          @{postData.post.authorUsername}
+                          @
+                          {postData.post.user.userName ||
+                            postData.post.user.username ||
+                            'unknown'}
                         </span>
                       </div>
                     </div>
@@ -249,17 +300,33 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                           className="pt-4  bg-card  rounded-lg p-4"
                         >
                           <div className="flex items-center gap-2">
-                            {comment.authorAvatar ? (
-                              <img
-                                src={comment.authorAvatar}
-                                alt="img"
-                                className="w-8 border p-1 rounded-full"
-                              />
-                            ) : (
-                              <div className="bg-muted flex w-8 h-8 items-center justify-center rounded-full font-semibold text-sm">
-                                {comment.authorName.charAt(0).toUpperCase()}
-                              </div>
-                            )}
+                            <img
+                              src={getAvatarUrl(comment.authorId)}
+                              alt={comment.authorName}
+                              className="size-8 rounded-full shrink-0"
+                              style={{
+                                backgroundColor: getAvatarColor(
+                                  comment.authorId
+                                ),
+                              }}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.style.display = 'none'
+                                const fallback =
+                                  target.nextElementSibling as HTMLElement
+                                if (fallback) fallback.style.display = 'flex'
+                              }}
+                            />
+                            <div
+                              className="size-8 items-center justify-center rounded-full font-semibold text-sm hidden text-white"
+                              style={{
+                                backgroundColor: getAvatarColor(
+                                  comment.authorId
+                                ),
+                              }}
+                            >
+                              {comment.authorName.charAt(0).toUpperCase()}
+                            </div>
                             <h4 className="font-semibold">
                               {comment.authorName}
                             </h4>

@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { UserPostsList } from '@/components/posts'
 import { useUserPosts } from '@/hooks/use-posts'
 import ModalPost from '@/components/posts/ModalPost'
+import { getAvatarUrl, getInitials } from '@/lib/avatar'
 
 export function ProfilePage() {
   const { user } = useAuth()
@@ -35,6 +36,9 @@ export function ProfilePage() {
     setIsModalOpen(true)
   }
 
+  const avatarUrl = user ? getAvatarUrl(user.id) : ''
+  const initials = user ? getInitials(user.name) : '?'
+
   return (
     <div className="p-6  ">
       <div className="space-y-6">
@@ -43,10 +47,10 @@ export function ProfilePage() {
           <div className="h-32 bg-linear-to-r from-primary/20 to-primary/10 rounded-t-lg" />
           <div className="px-6 pb-6">
             <div className="flex items-end gap-6 -mt-16">
-              <Avatar className="size-32  bg-accent">
-                <AvatarImage src={user?.avatar} alt={user?.name} />
+              <Avatar className="size-32 bg-accent   border-background">
+                <AvatarImage src={avatarUrl} alt={user?.name} />
                 <AvatarFallback className="bg-linear-to-br from-primary/80 to-primary text-primary-foreground text-5xl font-bold">
-                  {user?.name?.charAt(0).toUpperCase()}
+                  {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 pt-20">

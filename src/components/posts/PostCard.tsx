@@ -1,6 +1,7 @@
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import { postService } from '@/services/post.service'
 import type { Post } from '@/types/post.types'
+import { getAvatarUrl, getAvatarColor, getInitials } from '@/lib/avatar'
 
 interface PostCardProps {
   post: Post
@@ -30,8 +31,19 @@ export function PostCard({
 
   const handleShareClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    // Share functionality can be implemented later
   }
+
+  if (!post.user) {
+    return null
+  }
+
+  const authorName = `${post.user.firstName} ${post.user.lastName}`
+  // Handle both userName (camelCase) and username (lowercase) from API
+  const authorUsername = post.user.userName || post.user.username || 'unknown'
+  const createdAt = new Date(post.timestamps.createdAt.value)
+  const avatarUrl = getAvatarUrl(post.user.id)
+  const avatarColor = getAvatarColor(post.user.id)
+  const initials = getInitials(post.user.firstName, post.user.lastName)
 
   return (
     <div
@@ -39,25 +51,33 @@ export function PostCard({
       onClick={handlePostClick}
     >
       <div className="flex items-start gap-4">
-        {post.authorAvatar ? (
-          <img
-            src={post.authorAvatar}
-            alt={post.authorName}
-            className="size-10 rounded-full shrink-0"
-          />
-        ) : (
-          <div className="bg-primary text-primary-foreground flex size-10 items-center justify-center rounded-full font-bold shrink-0">
-            {post.authorName.charAt(0).toUpperCase()}
-          </div>
-        )}
+        <img
+          src={avatarUrl}
+          alt={authorName}
+          className="size-10 rounded-full shrink-0"
+          style={{ backgroundColor: avatarColor }}
+          onError={(e) => {
+            // Fallback to initials if image fails to load
+            const target = e.target as HTMLImageElement
+            target.style.display = 'none'
+            const fallback = target.nextElementSibling as HTMLElement
+            if (fallback) fallback.style.display = 'flex'
+          }}
+        />
+        <div
+          className="size-10 items-center justify-center rounded-full font-bold shrink-0 hidden text-white"
+          style={{ backgroundColor: avatarColor }}
+        >
+          {initials}
+        </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold truncate">{post.authorName}</h3>
+            <h3 className="font-semibold truncate">{authorName}</h3>
             <span className="text-muted-foreground text-sm truncate">
-              @{post.authorUsername}
+              @{authorUsername}
             </span>
             <span className="text-muted-foreground text-sm shrink-0">
-              · {postService.formatTimeAgo(post.createdAt)}
+              · {postService.formatTimeAgo(createdAt)}
             </span>
           </div>
           <p className="mt-2 text-foreground whitespace-pre-wrap wrap-break-word">

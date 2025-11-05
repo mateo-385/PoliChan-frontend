@@ -2,6 +2,7 @@ import { MessageCircle, Heart } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { postService } from '@/services/post.service'
 import type { Post } from '@/types/post.types'
+import { getAvatarUrl, getAvatarColor, getInitials } from '@/lib/avatar'
 
 interface UserPostsListProps {
   posts: Post[]
@@ -48,38 +49,64 @@ export function UserPostsList({
 
   return (
     <div className="space-y-4">
-      {posts.map((post) => (
-        <div
-          key={post.id}
-          className="p-4 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer"
-          onClick={() => onPostClick(post.id)}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-semibold">{post.authorName}</span>
-            <span className="text-muted-foreground text-sm">
-              @{post.authorUsername}
-            </span>
-          </div>
-          <p className="text-foreground whitespace-pre-wrap">{post.content}</p>
-          <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <MessageCircle className="size-4" />
-              {post.commentsCount}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Heart
-                className={`size-4 ${
-                  post.likedByCurrentUser ? 'fill-current text-red-500' : ''
-                }`}
+      {posts
+        .filter((post) => post.user)
+        .map((post) => (
+          <div
+            key={post.id}
+            className="p-4 border rounded-md hover:bg-muted/50 transition-colors cursor-pointer"
+            onClick={() => onPostClick(post.id)}
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <img
+                src={getAvatarUrl(post.user!.id)}
+                alt={`${post.user!.firstName} ${post.user!.lastName}`}
+                className="size-8 rounded-full shrink-0"
+                style={{ backgroundColor: getAvatarColor(post.user!.id) }}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement
+                  target.style.display = 'none'
+                  const fallback = target.nextElementSibling as HTMLElement
+                  if (fallback) fallback.style.display = 'flex'
+                }}
               />
-              {post.likesCount}
-            </span>
-            <span className="ml-auto">
-              {postService.formatTimeAgo(post.createdAt)}
-            </span>
+              <div
+                className="size-8 items-center justify-center rounded-full font-semibold text-sm hidden text-white"
+                style={{ backgroundColor: getAvatarColor(post.user!.id) }}
+              >
+                {getInitials(post.user!.firstName, post.user!.lastName)}
+              </div>
+              <span className="font-semibold">{`${post.user!.firstName} ${
+                post.user!.lastName
+              }`}</span>
+              <span className="text-muted-foreground text-sm">
+                @{post.user!.userName || post.user!.username || 'unknown'}
+              </span>
+            </div>
+            <p className="text-foreground whitespace-pre-wrap">
+              {post.content}
+            </p>
+            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <MessageCircle className="size-4" />
+                {post.commentsCount}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Heart
+                  className={`size-4 ${
+                    post.likedByCurrentUser ? 'fill-current text-red-500' : ''
+                  }`}
+                />
+                {post.likesCount}
+              </span>
+              <span className="ml-auto">
+                {postService.formatTimeAgo(
+                  new Date(post.timestamps.createdAt.value)
+                )}
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
     </div>
   )
 }
