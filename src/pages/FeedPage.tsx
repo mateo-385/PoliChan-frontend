@@ -1,13 +1,50 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { PostCard, PostSubmissionForm } from '@/components/posts'
 import ModalPost from '@/components/posts/ModalPost'
-import { usePosts } from '@/hooks/use-posts'
+import { useInfinitePosts } from '@/hooks/use-infinite-posts'
+import { Loader2 } from 'lucide-react'
 
 export function FeedPage() {
-  const { posts, isLoading, error, toggleLike, createPost, refetch } =
-    usePosts()
+  const {
+    posts,
+    isLoading,
+    isLoadingMore,
+    error,
+    hasMore,
+    toggleLike,
+    createPost,
+    refetch,
+    loadMore,
+  } = useInfinitePosts(5)
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
+
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current
+    if (!sentinel) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore()
+        }
+      },
+      {
+        rootMargin: '200px',
+      }
+    )
+
+    observer.observe(sentinel)
+
+    return () => {
+      if (sentinel) {
+        observer.unobserve(sentinel)
+      }
+    }
+  }, [hasMore, isLoadingMore, loadMore])
 
   const handlePostClick = (postId: string) => {
     setSelectedPostId(postId)
@@ -71,14 +108,33 @@ export function FeedPage() {
           </div>
         ) : (
           /* Posts List */
-          posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLike={handleToggleLike}
-              onClick={handlePostClick}
-            />
-          ))
+          <>
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                onLike={handleToggleLike}
+                onClick={handlePostClick}
+              />
+            ))}
+
+            {/* Sentinel element for infinite scroll */}
+            <div ref={sentinelRef} className="h-4" />
+
+            {/* Loading more indicator */}
+            {isLoadingMore && (
+              <div className="flex justify-center py-8">
+                <Loader2 className="size-8 animate-spin text-primary" />
+              </div>
+            )}
+
+            {/* No more posts message */}
+            {!hasMore && posts.length > 0 && (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                No hay más publicaciones
+              </div>
+            )}
+          </>
         )}
         <ModalPost
           postId={selectedPostId!}
