@@ -29,13 +29,22 @@ class WebSocketService {
 
       this.ws.onmessage = (event) => {
         try {
+          // Skip empty or non-JSON messages (like ping/pong)
+          if (!event.data || typeof event.data !== 'string') {
+            return
+          }
+
+          // Try to parse as JSON
           const data = JSON.parse(event.data)
           console.log('WebSocket message received:', data)
 
           // Notify all registered handlers
           this.messageHandlers.forEach((handler) => handler(data))
-        } catch (error) {
-          console.error('Error parsing WebSocket message:', error)
+        } catch {
+          // Silently ignore non-JSON messages (like nginx ping frames)
+          if (event.data && event.data.trim().length > 0) {
+            console.debug('Received non-JSON WebSocket message:', event.data)
+          }
         }
       }
 
