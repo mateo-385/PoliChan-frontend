@@ -1,13 +1,20 @@
 export interface Post {
   id: string
-  authorId: string
-  authorName: string
-  authorUsername: string
-  authorAvatar?: string
+  userId: string
   content: string
-  createdAt: Date
   likesCount: number
-  commentsCount: number
+  commentsCount?: number
+  timestamps: {
+    createdAt: { value: string }
+    updatedAt: { value: string }
+  }
+  user?: {
+    id: string
+    firstName: string
+    lastName: string
+    userName?: string // API might send userName (camelCase)
+    username?: string // or username (lowercase)
+  }
   likedByCurrentUser?: boolean
 }
 
@@ -25,6 +32,7 @@ export interface Comment {
 }
 
 export interface CreatePostData {
+  userId: string
   content: string
 }
 

@@ -3,24 +3,33 @@ import { postRepository } from '@/repositories/post.repository'
 import type {
   Post,
   Comment,
-  CreatePostData,
   CreateCommentData,
   PostWithComments,
 } from '@/types/post.types'
 
+interface TimelineParams {
+  limit?: number
+  afterPostId?: string
+}
+
 class PostService {
-  setCurrentUserId(_userId: string | null): void {
-    // Note: This might be needed for future features
-    // Currently not used as backend handles user context via JWT
-  }
+  // Note: setCurrentUserId not needed - backend handles user context via JWT
 
   // ===== QUERIES (Read Operations) =====
 
   /**
-   * Get timeline posts (main feed)
+   * Get timeline posts with infinite scroll support
+   */
+  async getTimelinePosts(params?: TimelineParams): Promise<Post[]> {
+    const response = await postRepository.getTimelinePosts(params)
+    return response.posts
+  }
+
+  /**
+   * Get all posts (legacy method)
    */
   async getAllPosts(): Promise<Post[]> {
-    return await postRepository.getTimelinePosts()
+    return await postRepository.getAllPosts()
   }
 
   /**
@@ -39,23 +48,27 @@ class PostService {
 
   /**
    * Get posts by user ID
-   * Note: This might need a new backend endpoint
    */
   async getPostsByUserId(userId: string): Promise<Post[]> {
-    const allPosts = await postRepository.getTimelinePosts()
-    return allPosts.filter((post) => post.authorId === userId)
+    const response = await postRepository.getPostsByUserId(userId)
+    return response.posts
   }
 
   // ===== COMMANDS (Write Operations) =====
 
   /**
    * Create a new post
+   * Returns success message, not the post object
+   * The post will appear in feed after refresh
    */
-  async createPost(data: CreatePostData): Promise<Post> {
-    if (!data.content.trim()) {
+  async createPost(
+    userId: string,
+    content: string
+  ): Promise<{ message: string }> {
+    if (!content.trim()) {
       throw new Error('Post content cannot be empty')
     }
-    return await postRepository.createPost(data)
+    return await postRepository.createPost({ userId, content })
   }
 
   /**
@@ -69,10 +82,20 @@ class PostService {
   }
 
   /**
-   * Toggle like on a post
+   * Like a post
    */
-  async toggleLike(postId: string): Promise<{ liked: boolean }> {
-    return await postRepository.toggleLike(postId)
+  async likePost(postId: string, userId: string): Promise<{ message: string }> {
+    return await postRepository.likePost(postId, userId)
+  }
+
+  /**
+   * Unlike a post
+   */
+  async unlikePost(
+    postId: string,
+    userId: string
+  ): Promise<{ message: string }> {
+    return await postRepository.unlikePost(postId, userId)
   }
 
   /**
@@ -84,9 +107,11 @@ class PostService {
 
   /**
    * Toggle like on a comment
-   * Note: This endpoint is not yet implemented in the new backend structure
+   * Note: This endpoint is not yet implemented in the backend
    */
-  async toggleCommentLike(_commentId: string): Promise<Comment> {
+  async toggleCommentLike(commentId: string): Promise<Comment> {
+    // Suppress unused parameter warning - this is a placeholder
+    void commentId
     // TODO: Wait for backend implementation
     throw new Error('Comment likes not yet implemented in backend')
   }
