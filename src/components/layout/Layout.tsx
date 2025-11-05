@@ -8,8 +8,8 @@ interface LayoutProps {
 }
 
 const pageTitles: Record<string, string> = {
-  '/feed': 'Feed',
-  '/profile': 'Profile',
+  '/feed': 'Inicio',
+  '/profile': 'Perfil',
 }
 
 export function Layout({ children }: LayoutProps) {

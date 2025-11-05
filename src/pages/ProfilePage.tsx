@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { UserPostsList } from '@/components/posts'
 import { useUserPosts } from '@/hooks/use-posts'
-import ModalPost from '@/components/ModalPost'
+import ModalPost from '@/components/posts/ModalPost'
 
 export function ProfilePage() {
   const { user } = useAuth()
