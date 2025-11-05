@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { PostCard, PostSubmissionForm } from '@/components/posts'
-import ModalPost from '@/components/ModalPost'
+import ModalPost from '@/components/posts/ModalPost'
 import { usePosts } from '@/hooks/use-posts'
 
 export function FeedPage() {
