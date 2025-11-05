@@ -104,7 +104,7 @@ export default function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <DialogContent className="max-w-2xl w-full max-h-[80vh] p-0">
+        <DialogContent className="max-w-2xl w-full max-h-[80vh] p-0 ">
           <ScrollArea className="h-[80vh] flex flex-col p-6 gap-4">
             {error && <p className="text-red-500">{error}</p>}
             {isLoading ? (
