@@ -27,9 +27,17 @@ export function usePosts() {
 
   const toggleLike = useCallback(async (postId: string) => {
     try {
-      const updatedPost = await postService.toggleLike(postId)
+      const { liked } = await postService.toggleLike(postId)
       setPosts((prevPosts) =>
-        prevPosts.map((p) => (p.id === postId ? updatedPost : p))
+        prevPosts.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                likedByCurrentUser: liked,
+                likesCount: liked ? p.likesCount + 1 : p.likesCount - 1,
+              }
+            : p
+        )
       )
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to like post')
@@ -88,10 +96,16 @@ export function usePost(postId: string | undefined) {
     if (!postId || !postData) return
 
     try {
-      const updatedPost = await postService.toggleLike(postId)
+      const { liked } = await postService.toggleLike(postId)
       setPostData({
         ...postData,
-        post: updatedPost,
+        post: {
+          ...postData.post,
+          likedByCurrentUser: liked,
+          likesCount: liked
+            ? postData.post.likesCount + 1
+            : postData.post.likesCount - 1,
+        },
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to like post')
