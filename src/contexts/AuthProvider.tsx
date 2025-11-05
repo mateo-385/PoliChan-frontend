@@ -6,7 +6,6 @@ import type {
   RegisterCredentials,
 } from '@/types/auth.types'
 import { authService } from '@/services/auth.service'
-import { postService } from '@/services/post.service'
 import { AuthContext } from './AuthContext'
 
 interface AuthProviderProps {
@@ -20,11 +19,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     initAuth()
   }, [])
-
-  useEffect(() => {
-    // Sync user ID with post service whenever user changes
-    postService.setCurrentUserId(user?.id || null)
-  }, [user])
 
   const initAuth = async () => {
     try {
