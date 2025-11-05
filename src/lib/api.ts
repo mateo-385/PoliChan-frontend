@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+const API_URL = import.meta.env.VITE_API_URL
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -37,12 +37,9 @@ api.interceptors.response.use(
       // that falls out of the range of 2xx
       const message = error.response.data?.message || error.message
 
-      // Handle 401 Unauthorized
-      if (error.response.status === 401) {
-        // Clear token and redirect to login
-        localStorage.removeItem('auth_token')
-        window.location.href = '/login'
-      }
+      // Note: We don't auto-redirect on 401 here anymore
+      // Let each service/component handle auth failures appropriately
+      // This prevents unwanted redirects during initial auth checks
 
       return Promise.reject(new Error(message))
     } else if (error.request) {
