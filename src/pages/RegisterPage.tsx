@@ -9,7 +9,8 @@ export function RegisterPage() {
 
   const handleRegister = async (credentials: RegisterCredentials) => {
     await register(credentials)
-    navigate('/feed')
+    // Redirect to login page after successful registration
+    navigate('/login')
   }
 
   return (

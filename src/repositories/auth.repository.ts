@@ -3,20 +3,44 @@ import type {
   LoginCredentials,
   RegisterCredentials,
   AuthResponse,
+  RegisterResponse,
 } from '@/types/auth.types'
+import { AxiosError } from 'axios'
 
 export class AuthRepository {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(
-      '/api/user/login',
-      credentials
-    )
-    return response.data
+    try {
+      const response = await api.post<AuthResponse>('/user/login', credentials)
+      return response.data
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response?.data) {
+        const errorMessage =
+          error.response.data.error ||
+          error.response.data.message ||
+          'Login failed'
+        throw new Error(errorMessage)
+      }
+      throw error
+    }
   }
 
-  async register(credentials: RegisterCredentials): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/api/users/', credentials)
-    return response.data
+  async register(credentials: RegisterCredentials): Promise<RegisterResponse> {
+    try {
+      const response = await api.post<RegisterResponse>(
+        '/user/register',
+        credentials
+      )
+      return response.data
+    } catch (error: unknown) {
+      if (error instanceof AxiosError && error.response?.data) {
+        const errorMessage =
+          error.response.data.error ||
+          error.response.data.message ||
+          'Registration failed'
+        throw new Error(errorMessage)
+      }
+      throw error
+    }
   }
 
   async logout(): Promise<void> {

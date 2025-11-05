@@ -13,7 +13,11 @@ export const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // You can add custom headers here if needed
+    // Add JWT token to requests if available
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
     return config
   },
   (error) => {
@@ -35,7 +39,8 @@ api.interceptors.response.use(
 
       // Handle 401 Unauthorized
       if (error.response.status === 401) {
-        // Redirect to login or handle unauthorized access
+        // Clear token and redirect to login
+        localStorage.removeItem('auth_token')
         window.location.href = '/login'
       }
 

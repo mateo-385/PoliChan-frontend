@@ -49,8 +49,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (credentials: RegisterCredentials) => {
     try {
-      const user = await authService.register(credentials)
-      setUser(user)
+      await authService.register(credentials)
+      // Don't set user, they need to login manually
     } catch (error) {
       console.error('Register error:', error)
       throw error

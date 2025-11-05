@@ -24,8 +24,12 @@ export interface RegisterCredentials {
 }
 
 export interface AuthResponse {
-  message: string
+  token: string
   user: ApiUser
+}
+
+export interface RegisterResponse {
+  message: string
 }
 
 export interface AuthState {
