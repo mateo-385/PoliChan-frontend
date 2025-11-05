@@ -28,6 +28,17 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
   useEffect(() => {
     websocketService.connect()
 
+    const intervalId = setInterval(() => {
+      setIsConnected(websocketService.isConnected())
+    }, 1000)
+
+    return () => {
+      clearInterval(intervalId)
+      websocketService.disconnect()
+    }
+  }, [])
+
+  useEffect(() => {
     const unsubscribe = websocketService.onMessage((data) => {
       console.log('WebSocket message received:', data)
 
@@ -52,14 +63,8 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
       }
     })
 
-    const intervalId = setInterval(() => {
-      setIsConnected(websocketService.isConnected())
-    }, 1000)
-
     return () => {
-      clearInterval(intervalId)
       unsubscribe()
-      websocketService.disconnect()
     }
   }, [user])
 
