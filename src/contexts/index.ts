@@ -1,5 +1,7 @@
 export { ThemeProvider } from './ThemeProvider'
 export { AuthProvider } from './AuthProvider'
+export { WebSocketProvider } from './WebSocketProvider'
 export { ThemeProviderContext } from './ThemeContext'
 export { AuthContext } from './AuthContext'
+export { WebSocketContext } from './WebSocketContext'
 export type { Theme, ThemeProviderState } from './ThemeContext'
