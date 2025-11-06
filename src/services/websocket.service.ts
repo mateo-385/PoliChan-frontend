@@ -22,29 +22,20 @@ class WebSocketService {
       this.ws = new WebSocket(wsUrl)
 
       this.ws.onopen = () => {
-        console.log('WebSocket connected')
         this.reconnectAttempts = 0
         this.isConnecting = false
       }
 
       this.ws.onmessage = (event) => {
         try {
-          // Skip empty or non-JSON messages (like ping/pong)
           if (!event.data || typeof event.data !== 'string') {
             return
           }
 
-          // Try to parse as JSON
           const data = JSON.parse(event.data)
-          console.log('WebSocket message received:', data)
-
-          // Notify all registered handlers
           this.messageHandlers.forEach((handler) => handler(data))
         } catch {
-          // Silently ignore non-JSON messages (like nginx ping frames)
-          if (event.data && event.data.trim().length > 0) {
-            console.debug('Received non-JSON WebSocket message:', event.data)
-          }
+          // Ignore non-JSON messages
         }
       }
 
@@ -54,7 +45,6 @@ class WebSocketService {
       }
 
       this.ws.onclose = () => {
-        console.log('WebSocket disconnected')
         this.isConnecting = false
         this.ws = null
         this.attemptReconnect()
@@ -69,12 +59,7 @@ class WebSocketService {
   private attemptReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
-      console.log(
-        `Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`
-      )
       setTimeout(() => this.connect(), this.reconnectDelay)
-    } else {
-      console.error('Max reconnection attempts reached')
     }
   }
 
@@ -83,7 +68,7 @@ class WebSocketService {
       this.ws.close()
       this.ws = null
     }
-    this.reconnectAttempts = this.maxReconnectAttempts // Prevent auto-reconnect
+    this.reconnectAttempts = this.maxReconnectAttempts
   }
 
   send(data: WebSocketMessage) {
@@ -97,7 +82,6 @@ class WebSocketService {
   onMessage(handler: WebSocketMessageHandler) {
     this.messageHandlers.add(handler)
 
-    // Return cleanup function
     return () => {
       this.messageHandlers.delete(handler)
     }

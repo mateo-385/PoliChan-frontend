@@ -121,31 +121,31 @@ class PostService {
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
     if (diffInSeconds < 60) {
-      return 'just now'
+      return 'ahora'
     }
 
     const diffInMinutes = Math.floor(diffInSeconds / 60)
     if (diffInMinutes < 60) {
-      return `${diffInMinutes}m ago`
+      return `hace ${diffInMinutes}m`
     }
 
     const diffInHours = Math.floor(diffInMinutes / 60)
     if (diffInHours < 24) {
-      return `${diffInHours}h ago`
+      return `hace ${diffInHours}h`
     }
 
     const diffInDays = Math.floor(diffInHours / 24)
     if (diffInDays < 7) {
-      return `${diffInDays}d ago`
+      return `hace ${diffInDays}d`
     }
 
     const diffInWeeks = Math.floor(diffInDays / 7)
     if (diffInWeeks < 4) {
-      return `${diffInWeeks}w ago`
+      return `hace ${diffInWeeks}sem`
     }
 
     const diffInMonths = Math.floor(diffInDays / 30)
-    return `${diffInMonths}mo ago`
+    return `hace ${diffInMonths}mes`
   }
 }
 

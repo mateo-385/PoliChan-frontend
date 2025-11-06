@@ -18,7 +18,6 @@ export function UserRegisteredNotification({
   const [isVisible, setIsVisible] = useState(true)
 
   useEffect(() => {
-    // Auto-hide after 5 seconds
     const timer = setTimeout(() => {
       setIsVisible(false)
       onClose?.()

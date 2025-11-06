@@ -6,12 +6,8 @@ export function WebSocketStatus() {
   const { isConnected } = useWebSocket()
 
   useEffect(() => {
-    // Subscribe to WebSocket messages
-    const unsubscribe = websocketService.onMessage((data) => {
-      if (data.type === 'user_registered') {
-        console.log('🎉 New user registered:', data)
-        // You could show a toast notification here
-      }
+    const unsubscribe = websocketService.onMessage(() => {
+      // TODO: Add toast notifications for WebSocket events
     })
 
     return unsubscribe

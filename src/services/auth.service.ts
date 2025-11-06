@@ -10,7 +10,8 @@ class AuthService {
   private transformApiUserToUser(apiUser: ApiUser): User {
     return {
       id: apiUser.id,
-      name: `${apiUser.firstName} ${apiUser.lastName}`,
+      firstName: apiUser.firstName,
+      lastName: apiUser.lastName,
       username: apiUser.userName,
     }
   }
@@ -29,7 +30,7 @@ class AuthService {
   async logout(): Promise<void> {
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_id')
-    await authRepository.logout()
+    window.location.href = '/login'
   }
 
   async getCurrentUser(): Promise<User | null> {
@@ -44,15 +45,12 @@ class AuthService {
       return this.transformApiUserToUser(response.user)
     } catch (error) {
       console.error('Failed to get current user:', error)
-      // Only clear credentials if it's a 401 (unauthorized) or 404 (user not found)
-      // Keep them for other errors (network issues, 500 errors, etc.)
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase()
         if (
           errorMessage.includes('not found') ||
           errorMessage.includes('unauthorized')
         ) {
-          console.warn('Invalid credentials, clearing localStorage')
           localStorage.removeItem('auth_token')
           localStorage.removeItem('user_id')
         }
