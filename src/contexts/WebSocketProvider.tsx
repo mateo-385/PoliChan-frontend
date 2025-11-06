@@ -5,6 +5,9 @@ import { WebSocketContext } from './WebSocketContext'
 import type {
   WebSocketMessage,
   UserRegisteredMessage,
+  PostCreatedMessage,
+  PostLikedMessage,
+  PostUnlikedMessage,
 } from '@/types/websocket.types'
 import { UserRegisteredNotification } from '@/components/notifications/UserRegisteredNotification'
 import { useAuth } from '@/hooks/use-auth'
@@ -40,14 +43,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
 
   useEffect(() => {
     const unsubscribe = websocketService.onMessage((data) => {
-      console.log('WebSocket message received:', data)
-
       if (data.type === 'user-registered') {
         const message = data as UserRegisteredMessage
-        console.log('New user registered:', message.data)
 
         if (user && message.data.userName === user.username) {
-          console.log('Skipping notification for current user')
           return
         }
 
@@ -60,6 +59,43 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
             lastName: message.data.lastName,
           },
         ])
+      }
+
+      if (data.type === 'post-created') {
+        const message = data as PostCreatedMessage
+
+        if (user && message.data.userId === user.id) {
+          return
+        }
+
+        try {
+          const evt = new CustomEvent('post-created', { detail: message.data })
+          window.dispatchEvent(evt)
+        } catch {
+          // Ignore dispatch errors
+        }
+      }
+
+      if (data.type === 'like-created') {
+        const message = data as PostLikedMessage
+
+        try {
+          const evt = new CustomEvent('like-created', { detail: message.data })
+          window.dispatchEvent(evt)
+        } catch {
+          // Ignore dispatch errors
+        }
+      }
+
+      if (data.type === 'like-deleted') {
+        const message = data as PostUnlikedMessage
+
+        try {
+          const evt = new CustomEvent('like-deleted', { detail: message.data })
+          window.dispatchEvent(evt)
+        } catch {
+          // Ignore dispatch errors
+        }
       }
     })
 

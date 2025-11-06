@@ -3,26 +3,19 @@ import { postService } from '@/services/post.service'
 import type { Post } from '@/types/post.types'
 import { useAuth } from '@/hooks/use-auth'
 
-const LIKED_POSTS_KEY = 'liked_posts'
+/**
+ * Helper to check if current user liked a post and add computed property
+ */
+function processPostsWithLikeStatus(
+  posts: Post[],
+  userId: string | undefined
+): Post[] {
+  if (!userId) return posts
 
-function getLikedPosts(userId: string): Set<string> {
-  try {
-    const stored = localStorage.getItem(`${LIKED_POSTS_KEY}_${userId}`)
-    return stored ? new Set(JSON.parse(stored)) : new Set()
-  } catch {
-    return new Set()
-  }
-}
-
-function saveLikedPosts(userId: string, likedPosts: Set<string>) {
-  try {
-    localStorage.setItem(
-      `${LIKED_POSTS_KEY}_${userId}`,
-      JSON.stringify([...likedPosts])
-    )
-  } catch (error) {
-    console.error('Failed to save liked posts:', error)
-  }
+  return posts.map((post) => ({
+    ...post,
+    likedByCurrentUser: post.likes?.includes(userId) || false,
+  }))
 }
 
 /**
@@ -34,9 +27,11 @@ export function useInfinitePosts(limit: number = 20) {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
+  const [newPostsCount, setNewPostsCount] = useState(0)
   const { user } = useAuth()
 
   const lastPostIdRef = useRef<string | undefined>(undefined)
+  const firstPostIdRef = useRef<string | undefined>(undefined)
 
   const loadPosts = useCallback(
     async (loadMore = false) => {
@@ -58,18 +53,7 @@ export function useInfinitePosts(limit: number = 20) {
         const data = await postService.getTimelinePosts(params)
         const postsArray = Array.isArray(data) ? data : []
 
-        let processedPosts = postsArray
-        if (
-          user &&
-          postsArray.length > 0 &&
-          postsArray[0].likedByCurrentUser === undefined
-        ) {
-          const likedPosts = getLikedPosts(user.id)
-          processedPosts = postsArray.map((post) => ({
-            ...post,
-            likedByCurrentUser: likedPosts.has(post.id),
-          }))
-        }
+        const processedPosts = processPostsWithLikeStatus(postsArray, user?.id)
 
         if (loadMore) {
           setPosts((prev) => [...prev, ...processedPosts])
@@ -79,6 +63,9 @@ export function useInfinitePosts(limit: number = 20) {
 
         if (processedPosts.length > 0) {
           lastPostIdRef.current = processedPosts[processedPosts.length - 1].id
+          if (!loadMore) {
+            firstPostIdRef.current = processedPosts[0].id
+          }
         }
 
         if (processedPosts.length < limit) {
@@ -100,6 +87,102 @@ export function useInfinitePosts(limit: number = 20) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      try {
+        const custom = e as CustomEvent
+        const payload = custom.detail as {
+          postId: string
+          userId: string
+        }
+
+        if (!payload || !payload.postId) return
+
+        if (user && payload.userId === user.id) return
+
+        setNewPostsCount((prev) => prev + 1)
+      } catch {
+        // Ignore invalid post-created events
+      }
+    }
+
+    window.addEventListener('post-created', handler as EventListener)
+    return () =>
+      window.removeEventListener('post-created', handler as EventListener)
+  }, [user])
+
+  useEffect(() => {
+    const handleLike = (e: Event) => {
+      try {
+        const custom = e as CustomEvent
+        const payload = custom.detail as {
+          postId: string
+          userId: string
+        }
+
+        if (!payload || !payload.postId) return
+
+        setPosts((prevPosts) =>
+          prevPosts.map((post) => {
+            if (post.id === payload.postId) {
+              const newLikes = post.likes.includes(payload.userId)
+                ? post.likes
+                : [...post.likes, payload.userId]
+
+              return {
+                ...post,
+                likes: newLikes,
+                likesCount: newLikes.length,
+                likedByCurrentUser: user ? newLikes.includes(user.id) : false,
+              }
+            }
+            return post
+          })
+        )
+      } catch {
+        // Ignore invalid like-created events
+      }
+    }
+
+    const handleUnlike = (e: Event) => {
+      try {
+        const custom = e as CustomEvent
+        const payload = custom.detail as {
+          postId: string
+          userId: string
+        }
+
+        if (!payload || !payload.postId) return
+
+        setPosts((prevPosts) =>
+          prevPosts.map((post) => {
+            if (post.id === payload.postId) {
+              const newLikes = post.likes.filter((id) => id !== payload.userId)
+
+              return {
+                ...post,
+                likes: newLikes,
+                likesCount: newLikes.length,
+                likedByCurrentUser: user ? newLikes.includes(user.id) : false,
+              }
+            }
+            return post
+          })
+        )
+      } catch {
+        // Ignore invalid like-deleted events
+      }
+    }
+
+    window.addEventListener('like-created', handleLike as EventListener)
+    window.addEventListener('like-deleted', handleUnlike as EventListener)
+
+    return () => {
+      window.removeEventListener('like-created', handleLike as EventListener)
+      window.removeEventListener('like-deleted', handleUnlike as EventListener)
+    }
+  }, [user])
+
   const loadMore = useCallback(() => {
     if (!isLoadingMore && !isLoading && hasMore) {
       loadPosts(true)
@@ -109,8 +192,47 @@ export function useInfinitePosts(limit: number = 20) {
   const refetch = useCallback(() => {
     lastPostIdRef.current = undefined
     setHasMore(true)
+    setNewPostsCount(0)
     loadPosts(false)
   }, [loadPosts])
+
+  const loadNewPosts = useCallback(async () => {
+    try {
+      setError(null)
+
+      const data = await postService.getTimelinePosts({ limit: 50 })
+      const postsArray = Array.isArray(data) ? data : []
+
+      const currentFirstId = firstPostIdRef.current || posts[0]?.id
+
+      if (!currentFirstId) {
+        const processedPosts = processPostsWithLikeStatus(postsArray, user?.id)
+        setPosts(processedPosts)
+        if (processedPosts.length > 0) {
+          firstPostIdRef.current = processedPosts[0].id
+        }
+        setNewPostsCount(0)
+        return
+      }
+
+      const firstPostIndex = postsArray.findIndex(
+        (p) => p.id === currentFirstId
+      )
+      const newPosts =
+        firstPostIndex > 0 ? postsArray.slice(0, firstPostIndex) : []
+
+      if (newPosts.length > 0) {
+        const processedPosts = processPostsWithLikeStatus(newPosts, user?.id)
+
+        setPosts((prev) => [...processedPosts, ...prev])
+        firstPostIdRef.current = processedPosts[0].id
+      }
+
+      setNewPostsCount(0)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load new posts')
+    }
+  }, [user, posts])
 
   const toggleLike = useCallback(
     async (postId: string) => {
@@ -127,24 +249,22 @@ export function useInfinitePosts(limit: number = 20) {
           await postService.likePost(postId, user.id)
         }
 
-        const likedPosts = getLikedPosts(user.id)
-        if (isLiked) {
-          likedPosts.delete(postId)
-        } else {
-          likedPosts.add(postId)
-        }
-        saveLikedPosts(user.id, likedPosts)
-
         setPosts((prevPosts) =>
-          prevPosts.map((p) =>
-            p.id === postId
-              ? {
-                  ...p,
-                  likedByCurrentUser: !isLiked,
-                  likesCount: isLiked ? p.likesCount - 1 : p.likesCount + 1,
-                }
-              : p
-          )
+          prevPosts.map((p) => {
+            if (p.id === postId) {
+              const newLikes = isLiked
+                ? p.likes.filter((id) => id !== user.id)
+                : [...p.likes, user.id]
+
+              return {
+                ...p,
+                likes: newLikes,
+                likedByCurrentUser: !isLiked,
+                likesCount: newLikes.length,
+              }
+            }
+            return p
+          })
         )
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to like post')
@@ -161,13 +281,14 @@ export function useInfinitePosts(limit: number = 20) {
       }
       try {
         await postService.createPost(user.id, content)
-        await refetch()
+
+        await loadNewPosts()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to create post')
         throw err
       }
     },
-    [refetch, user]
+    [user, loadNewPosts]
   )
 
   return {
@@ -180,5 +301,7 @@ export function useInfinitePosts(limit: number = 20) {
     refetch,
     toggleLike,
     createPost,
+    newPostsCount,
+    loadNewPosts,
   }
 }

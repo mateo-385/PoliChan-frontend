@@ -15,4 +15,30 @@ export interface UserRegisteredMessage extends WebSocketMessage {
   }
 }
 
-// Add more message types as your backend implements them
+export interface PostCreatedMessage extends WebSocketMessage {
+  type: 'post-created'
+  data: {
+    postId: string
+    userId: string
+    content: string
+    ocurredAt: string
+  }
+}
+
+export interface PostLikedMessage extends WebSocketMessage {
+  type: 'like-created'
+  data: {
+    postId: string
+    userId: string
+    acurredAt: number
+  }
+}
+
+export interface PostUnlikedMessage extends WebSocketMessage {
+  type: 'post-unliked'
+  data: {
+    postId: string
+    userId: string
+    acurredAt: number
+  }
+}
