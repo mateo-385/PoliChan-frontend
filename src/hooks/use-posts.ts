@@ -3,30 +3,21 @@ import { postService } from '@/services/post.service'
 import type { Post, PostWithComments } from '@/types/post.types'
 import { useAuth } from '@/hooks/use-auth'
 
-// Helper to manage liked posts in localStorage (temporary solution until backend provides this)
-const LIKED_POSTS_KEY = 'liked_posts'
+/**
+ * Helper to check if current user liked posts and add computed property
+ */
+function processPostsWithLikeStatus(
+  posts: Post[],
+  userId: string | undefined
+): Post[] {
+  if (!userId) return posts
 
-function getLikedPosts(userId: string): Set<string> {
-  try {
-    const stored = localStorage.getItem(`${LIKED_POSTS_KEY}_${userId}`)
-    return stored ? new Set(JSON.parse(stored)) : new Set()
-  } catch {
-    return new Set()
-  }
+  return posts.map((post) => ({
+    ...post,
+    likedByCurrentUser: post.likes?.includes(userId) || false,
+  }))
 }
 
-function saveLikedPosts(userId: string, likedPosts: Set<string>) {
-  try {
-    localStorage.setItem(
-      `${LIKED_POSTS_KEY}_${userId}`,
-      JSON.stringify([...likedPosts])
-    )
-  } catch (error) {
-    console.error('Failed to save liked posts:', error)
-  }
-}
-
-// Hook to get all posts
 export function usePosts() {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -38,27 +29,16 @@ export function usePosts() {
       setIsLoading(true)
       setError(null)
       const data = await postService.getAllPosts()
-      // Ensure data is an array
       const postsArray = Array.isArray(data) ? data : []
 
-      // If backend doesn't provide likedByCurrentUser, use local storage
-      if (
-        user &&
-        postsArray.length > 0 &&
-        postsArray[0].likedByCurrentUser === undefined
-      ) {
-        const likedPosts = getLikedPosts(user.id)
-        const postsWithLikedStatus = postsArray.map((post) => ({
-          ...post,
-          likedByCurrentUser: likedPosts.has(post.id),
-        }))
-        setPosts(postsWithLikedStatus)
-      } else {
-        setPosts(postsArray)
-      }
+      const postsWithLikedStatus = processPostsWithLikeStatus(
+        postsArray,
+        user?.id
+      )
+      setPosts(postsWithLikedStatus)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load posts')
-      setPosts([]) // Set empty array on error
+      setPosts([])
     } finally {
       setIsLoading(false)
     }
@@ -74,7 +54,6 @@ export function usePosts() {
         throw new Error('User must be logged in to like posts')
       }
       try {
-        // Check if currently liked by looking at local state
         const post = posts.find((p) => p.id === postId)
         const isLiked = post?.likedByCurrentUser || false
 
@@ -84,21 +63,14 @@ export function usePosts() {
           await postService.likePost(postId, user.id)
         }
 
-        // Update local storage for persistence
-        const likedPosts = getLikedPosts(user.id)
-        if (isLiked) {
-          likedPosts.delete(postId)
-        } else {
-          likedPosts.add(postId)
-        }
-        saveLikedPosts(user.id, likedPosts)
-
-        // Update local state optimistically
         setPosts((prevPosts) =>
           prevPosts.map((p) =>
             p.id === postId
               ? {
                   ...p,
+                  likes: isLiked
+                    ? p.likes.filter((id) => id !== user.id)
+                    : [...p.likes, user.id],
                   likedByCurrentUser: !isLiked,
                   likesCount: isLiked ? p.likesCount - 1 : p.likesCount + 1,
                 }
@@ -107,7 +79,6 @@ export function usePosts() {
         )
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to like post')
-        // Reload posts to sync with server on error
         await loadPosts()
       }
     },
@@ -121,7 +92,7 @@ export function usePosts() {
       }
       try {
         await postService.createPost(user.id, content)
-        await loadPosts() // Refresh posts
+        await loadPosts()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to create post')
         throw err
@@ -140,7 +111,6 @@ export function usePosts() {
   }
 }
 
-// Hook to get a single post with comments
 export function usePost(postId: string | undefined) {
   const [postData, setPostData] = useState<PostWithComments | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -155,13 +125,15 @@ export function usePost(postId: string | undefined) {
       setError(null)
       const data = await postService.getPostById(postId)
 
-      // If backend doesn't provide likedByCurrentUser, use local storage
-      if (user && data.post.likedByCurrentUser === undefined) {
-        const likedPosts = getLikedPosts(user.id)
-        data.post.likedByCurrentUser = likedPosts.has(data.post.id)
+      const postWithLikedStatus = {
+        ...data,
+        post: {
+          ...data.post,
+          likedByCurrentUser: user ? data.post.likes.includes(user.id) : false,
+        },
       }
 
-      setPostData(data)
+      setPostData(postWithLikedStatus)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load post')
     } finally {
@@ -185,19 +157,13 @@ export function usePost(postId: string | undefined) {
         await postService.likePost(postId, user.id)
       }
 
-      // Update local storage for persistence
-      const likedPosts = getLikedPosts(user.id)
-      if (isLiked) {
-        likedPosts.delete(postId)
-      } else {
-        likedPosts.add(postId)
-      }
-      saveLikedPosts(user.id, likedPosts)
-
       setPostData({
         ...postData,
         post: {
           ...postData.post,
+          likes: isLiked
+            ? postData.post.likes.filter((id) => id !== user.id)
+            : [...postData.post.likes, user.id],
           likedByCurrentUser: !isLiked,
           likesCount: isLiked
             ? postData.post.likesCount - 1
@@ -237,7 +203,6 @@ export function usePost(postId: string | undefined) {
           postId,
           content,
         })
-        // Update state with new comment without full reload
         setPostData({
           ...postData,
           comments: [...postData.comments, newComment],
@@ -266,7 +231,6 @@ export function usePost(postId: string | undefined) {
   }
 }
 
-// Hook to get posts by user
 export function useUserPosts(userId: string | undefined) {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -280,27 +244,16 @@ export function useUserPosts(userId: string | undefined) {
       setIsLoading(true)
       setError(null)
       const data = await postService.getPostsByUserId(userId)
-      // Ensure data is an array
       const postsArray = Array.isArray(data) ? data : []
 
-      // If backend doesn't provide likedByCurrentUser, use local storage
-      if (
-        user &&
-        postsArray.length > 0 &&
-        postsArray[0].likedByCurrentUser === undefined
-      ) {
-        const likedPosts = getLikedPosts(user.id)
-        const postsWithLikedStatus = postsArray.map((post) => ({
-          ...post,
-          likedByCurrentUser: likedPosts.has(post.id),
-        }))
-        setPosts(postsWithLikedStatus)
-      } else {
-        setPosts(postsArray)
-      }
+      const postsWithLikedStatus = processPostsWithLikeStatus(
+        postsArray,
+        user?.id
+      )
+      setPosts(postsWithLikedStatus)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load user posts')
-      setPosts([]) // Set empty array on error
+      setPosts([])
     } finally {
       setIsLoading(false)
     }

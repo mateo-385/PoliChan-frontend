@@ -70,7 +70,6 @@ export class PostRepository {
       const response = await api.get<PostsResponse>(url)
       return response.data
     } catch (error: unknown) {
-      console.error('postRepository.getTimelinePosts - error:', error)
       if (error instanceof AxiosError) {
         const errorMessage =
           error.response?.data?.error ||
@@ -91,7 +90,6 @@ export class PostRepository {
       const response = await api.get<PostsResponse>('/posts')
       return response.data.posts || []
     } catch (error: unknown) {
-      console.error('postRepository.getAllPosts - error:', error)
       if (error instanceof AxiosError) {
         const errorMessage =
           error.response?.data?.error ||

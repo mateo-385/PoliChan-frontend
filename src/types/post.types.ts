@@ -3,6 +3,7 @@ export interface Post {
   userId: string
   content: string
   likesCount: number
+  likes: string[]
   commentsCount?: number
   timestamps: {
     createdAt: { value: string }
@@ -12,8 +13,8 @@ export interface Post {
     id: string
     firstName: string
     lastName: string
-    userName?: string // API might send userName (camelCase)
-    username?: string // or username (lowercase)
+    userName?: string
+    username?: string
   }
   likedByCurrentUser?: boolean
 }
