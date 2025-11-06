@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import { Heart, MessageCircle } from 'lucide-react'
 import { postService } from '@/services/post.service'
 import type { Post } from '@/types/post.types'
@@ -18,8 +19,28 @@ export function PostCard({
   showActions = true,
 }: PostCardProps) {
   const isMobile = useIsMobile()
+
+  // Optimistic UI state
+  const [optimisticLiked, setOptimisticLiked] = useState(
+    post.likedByCurrentUser
+  )
+  const [optimisticCount, setOptimisticCount] = useState(post.likesCount)
+
+  // Sync with prop changes
+  useEffect(() => {
+    setOptimisticLiked(post.likedByCurrentUser)
+    setOptimisticCount(post.likesCount)
+  }, [post.likedByCurrentUser, post.likesCount])
+
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation()
+
+    // Optimistic update
+    setOptimisticLiked(!optimisticLiked)
+    setOptimisticCount(
+      optimisticLiked ? optimisticCount - 1 : optimisticCount + 1
+    )
+
     if (onLike) {
       onLike(post.id)
     }
@@ -131,7 +152,7 @@ export function PostCard({
               <button
                 onClick={handleLikeClick}
                 className={`flex items-center gap-1.5 cursor-pointer hover:text-red-400 transition-colors ${
-                  post.likedByCurrentUser ? 'text-red-500' : ''
+                  optimisticLiked ? 'text-red-500' : ''
                 }`}
               >
                 <Heart
@@ -139,11 +160,11 @@ export function PostCard({
                     width: isMobile ? '16px' : '22px',
                     height: isMobile ? '16px' : '22px',
                   }}
-                  className={`  ${
-                    post.likedByCurrentUser ? 'fill-current' : ''
+                  className={`transition-all ${
+                    optimisticLiked ? 'fill-current scale-110' : 'scale-100'
                   }`}
                 />
-                <span>{post.likesCount}</span>
+                <span>{optimisticCount}</span>
               </button>
             </div>
           )}
