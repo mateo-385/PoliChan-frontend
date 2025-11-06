@@ -6,6 +6,7 @@ import { Loader2, ArrowUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 export function FeedPage() {
   const {
@@ -22,6 +23,7 @@ export function FeedPage() {
   } = useInfinitePosts(5)
 
   const { user } = useAuth()
+  const isMobile = useIsMobile()
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
@@ -102,12 +104,22 @@ export function FeedPage() {
   }
 
   return (
-    <div className="p-6   ">
-      <div className="mb-5">
-        <h2 className="text-3xl font-bold tracking-tight truncate">
+    <div className={isMobile ? 'px-0 pt-3 pb-4' : 'p-6'}>
+      <div className={isMobile ? 'mb-3 px-3' : 'mb-5'}>
+        <h2
+          className={
+            isMobile
+              ? 'text-xl font-bold tracking-tight truncate'
+              : 'text-3xl font-bold tracking-tight truncate'
+          }
+        >
           ¡Hola, {user?.firstName}!
         </h2>
-        <p className="text-muted-foreground">
+        <p
+          className={
+            isMobile ? 'text-sm text-muted-foreground' : 'text-muted-foreground'
+          }
+        >
           Comparte tus ideas y conecta con otros estudiantes
         </p>
       </div>
