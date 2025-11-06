@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { Layout } from './Layout'
+import { Spinner } from '../ui/spinner'
 
 export function ProtectedLayout() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -8,7 +9,7 @@ export function ProtectedLayout() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Loading...</div>
+        <Spinner className="size-12" />
       </div>
     )
   }
