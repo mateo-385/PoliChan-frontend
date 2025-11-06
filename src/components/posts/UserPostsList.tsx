@@ -2,7 +2,7 @@ import { MessageCircle, Heart } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { postService } from '@/services/post.service'
 import type { Post } from '@/types/post.types'
-import { getAvatarUrl, getAvatarColor, getInitials } from '@/lib/avatar'
+import { getAvatarColor, getInitials } from '@/lib/avatar'
 
 interface UserPostsListProps {
   posts: Post[]
@@ -58,28 +58,16 @@ export function UserPostsList({
             onClick={() => onPostClick(post.id)}
           >
             <div className="flex items-center gap-2 mb-2">
-              <img
-                src={getAvatarUrl(post.user!.id)}
-                alt={`${post.user!.firstName} ${post.user!.lastName}`}
-                className="size-8 rounded-full shrink-0"
-                style={{ backgroundColor: getAvatarColor(post.user!.id) }}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement
-                  target.style.display = 'none'
-                  const fallback = target.nextElementSibling as HTMLElement
-                  if (fallback) fallback.style.display = 'flex'
-                }}
-              />
               <div
-                className="size-8 items-center justify-center rounded-full font-semibold text-sm hidden text-white"
+                className="size-8 flex items-center justify-center rounded-full font-semibold text-sm text-white"
                 style={{ backgroundColor: getAvatarColor(post.user!.id) }}
               >
                 {getInitials(post.user!.firstName, post.user!.lastName)}
               </div>
-              <span className="font-semibold">{`${post.user!.firstName} ${
-                post.user!.lastName
-              }`}</span>
-              <span className="text-muted-foreground text-sm">
+              <span className="font-semibold truncate w-96">{`${
+                post.user!.firstName
+              } ${post.user!.lastName}`}</span>
+              <span className="text-muted-foreground text-sm ">
                 @{post.user!.userName || post.user!.username || 'unknown'}
               </span>
             </div>

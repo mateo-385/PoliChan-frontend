@@ -1,16 +1,4 @@
 /**
- * Generate a consistent avatar URL based on user ID
- * Using DiceBear API for generating avatars
- */
-export function getAvatarUrl(
-  userId: string,
-  style: 'initials' | 'shapes' = 'initials'
-): string {
-  // Using DiceBear API - free and no attribution required
-  return `https://api.dicebear.com/7.x/${style}/svg?seed=${userId}`
-}
-
-/**
  * Generate a consistent background color based on user ID
  * Returns a hex color code
  */

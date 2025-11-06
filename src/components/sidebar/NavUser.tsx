@@ -1,5 +1,5 @@
 import { ChevronsUpDown, LogOut } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import {
 import { useSidebar } from '@/hooks/use-sidebar'
 import { useAuth } from '@/hooks/use-auth'
 import { useNavigate } from 'react-router-dom'
-import { getAvatarUrl, getInitials } from '@/lib/avatar'
+import { getInitials, getAvatarColor } from '@/lib/avatar'
 
 export function NavUser() {
   const { user, logout } = useAuth()
@@ -30,8 +30,8 @@ export function NavUser() {
 
   if (!user) return null
 
-  const avatarUrl = getAvatarUrl(user.id)
-  const initials = getInitials(user.name)
+  const initials = getInitials(user.firstName, user.lastName)
+  const avatarColor = getAvatarColor(user.id)
 
   return (
     <SidebarMenu>
@@ -42,14 +42,16 @@ export function NavUser() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8   bg-accent shadow-md">
-                <AvatarImage src={avatarUrl} alt={user.name} />
-                <AvatarFallback className="rounded-lg">
+              <Avatar className="h-8 w-8 shadow-md">
+                <AvatarFallback
+                  className="rounded-lg text-white"
+                  style={{ backgroundColor: avatarColor }}
+                >
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">{`${user.firstName} ${user.lastName}`}</span>
                 <span className="truncate text-xs">@{user.username}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
@@ -63,14 +65,17 @@ export function NavUser() {
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="h-8 w-8 bg-accent shadow-md">
-                  <AvatarImage src={avatarUrl} alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
+                <Avatar className="h-8 w-8 shadow-md">
+                  <AvatarFallback
+                    className="rounded-lg text-white"
+                    style={{ backgroundColor: avatarColor }}
+                  >
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium w-56">{`${user.firstName} ${user.lastName}`}</span>
+
                   <span className="truncate text-xs">@{user.username}</span>
                 </div>
               </div>
