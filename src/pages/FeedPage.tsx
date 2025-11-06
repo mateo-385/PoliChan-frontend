@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { PostCard, PostSubmissionForm } from '@/components/posts'
 import { ModalPost } from '@/components/posts/ModalPost'
 import { useInfinitePosts } from '@/hooks/use-infinite-posts'
-import { Loader2, ArrowUp } from 'lucide-react'
+import { Loader2, ArrowUp, RotateCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAuth } from '@/hooks/use-auth'
@@ -28,8 +28,11 @@ export function FeedPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null)
   const [newPostIds, setNewPostIds] = useState<Set<string>>(new Set())
+  const [isAtTop, setIsAtTop] = useState(true)
+  const [isLoadingNew, setIsLoadingNew] = useState(false)
 
   const sentinelRef = useRef<HTMLDivElement>(null)
+  const topSentinelRef = useRef<HTMLDivElement>(null)
   const previousFirstPostIdRef = useRef<string | null>(null)
 
   useEffect(() => {
@@ -59,6 +62,7 @@ export function FeedPage() {
     previousFirstPostIdRef.current = currentFirstPostId
   }, [posts])
 
+  // Intersection observer for bottom (infinite scroll)
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
@@ -82,6 +86,52 @@ export function FeedPage() {
       }
     }
   }, [hasMore, isLoadingMore, loadMore])
+
+  // Intersection observer for top (auto-load new posts)
+  useEffect(() => {
+    const topSentinel = topSentinelRef.current
+    if (!topSentinel) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const isVisible = entries[0].isIntersecting
+        setIsAtTop(isVisible)
+
+        if (isVisible && newPostsCount > 0 && !isLoadingNew) {
+          setIsLoadingNew(true)
+          loadNewPosts().finally(() => {
+            setIsLoadingNew(false)
+          })
+        }
+      },
+      {
+        rootMargin: '0px',
+        threshold: 0.1,
+      }
+    )
+
+    observer.observe(topSentinel)
+
+    return () => {
+      if (topSentinel) {
+        observer.unobserve(topSentinel)
+      }
+    }
+  }, [newPostsCount, isLoadingNew, loadNewPosts])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      setIsAtTop(scrollTop < 100)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
 
   const handlePostClick = (postId: string) => {
     setSelectedPostId(postId)
@@ -123,11 +173,17 @@ export function FeedPage() {
           Comparte tus ideas y conecta con otros estudiantes
         </p>
       </div>
-      {newPostsCount > 0 && (
-        <div className="fixed top-20 left-100 right-50 z-50 flex justify-center  pointer-events-none animate-in fade-in slide-in-from-top-4 duration-300">
+      {newPostsCount > 0 && !isAtTop && (
+        <div
+          className={`fixed top-20 z-50   animate-in fade-in slide-in-from-top-4 duration-300 ${
+            isMobile
+              ? 'left-1/2 -translate-x-1/2'
+              : 'left-100 right-50 flex justify-center'
+          }`}
+        >
           <Button
             onClick={handleNewPostsClick}
-            className="shadow-lg hover:shadow-xl rounded-full pointer-events-auto  cursor-pointer"
+            className="shadow-lg hover:shadow-xl rounded-full cursor-pointer"
             size="lg"
           >
             <ArrowUp className="animate-bounce" />
@@ -137,7 +193,25 @@ export function FeedPage() {
           </Button>
         </div>
       )}
+      {isLoadingNew && isAtTop && (
+        <div
+          className={`fixed top-20 z-50 animate-in fade-in slide-in-from-top-4 duration-300 ${
+            isMobile
+              ? 'left-1/2 -translate-x-1/2'
+              : 'left-100 right-50 flex justify-center'
+          }`}
+        >
+          <Button
+            className="shadow-lg rounded-full pointer-events-none"
+            size="lg"
+          >
+            <RotateCw className="animate-spin" />
+            Cargando nuevas publicaciones...
+          </Button>
+        </div>
+      )}
       <div className=" mx-auto space-y-4">
+        <div ref={topSentinelRef} className="h-1" />
         <PostSubmissionForm
           onSubmit={handlePostSubmit}
           onPostCreated={() => {}}
