@@ -11,11 +11,17 @@ const RATE_LIMIT_SECONDS = 3
 interface PostSubmissionFormProps {
   onPostCreated: () => void
   onSubmit: (content: string) => Promise<void>
+  placeholder?: string
+  buttonText?: string
+  buttonTextSubmitting?: string
 }
 
 export function PostSubmissionForm({
   onPostCreated,
   onSubmit,
+  placeholder = '¿Qué estás pensando?',
+  buttonText = 'Publicar',
+  buttonTextSubmitting = 'Publicando...',
 }: PostSubmissionFormProps) {
   const { user } = useAuth()
   const [newPostContent, setNewPostContent] = useState('')
@@ -24,7 +30,6 @@ export function PostSubmissionForm({
   const [lastPostTime, setLastPostTime] = useState<number | null>(null)
 
   const sanitizeContent = (content: string): string => {
-    // Remove potential SQL injection patterns
     let sanitized = content
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -33,7 +38,6 @@ export function PostSubmissionForm({
       .replace(/\//g, '&#x2F;')
       .replace(/`/g, '&#96;')
 
-    // Remove SQL keywords and patterns (case insensitive)
     const sqlPatterns = [
       /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|DECLARE|CAST|CONVERT)\b)/gi,
       /(--|;|\/\*|\*\/)/g,
@@ -45,20 +49,15 @@ export function PostSubmissionForm({
       sanitized = sanitized.replace(pattern, '')
     })
 
-    // Limit consecutive line breaks to MAX_CONSECUTIVE_LINE_BREAKS
-    // Create a string with MAX_CONSECUTIVE_LINE_BREAKS + 1 line breaks to search for
     const excessiveBreaks = '\n'.repeat(MAX_CONSECUTIVE_LINE_BREAKS + 1)
     const allowedBreaks = '\n'.repeat(MAX_CONSECUTIVE_LINE_BREAKS)
 
-    // Keep replacing until no more excessive line breaks exist
     while (sanitized.includes(excessiveBreaks)) {
       sanitized = sanitized.replace(excessiveBreaks, allowedBreaks)
     }
 
-    // Limit total number of line breaks
     const lineBreakCount = (sanitized.match(/\n/g) || []).length
     if (lineBreakCount > MAX_TOTAL_LINE_BREAKS) {
-      // Remove excess line breaks from the end
       const lines = sanitized.split('\n')
       sanitized = lines.slice(0, MAX_TOTAL_LINE_BREAKS + 1).join('\n')
     }
@@ -81,8 +80,6 @@ export function PostSubmissionForm({
       return 'La publicación es muy corta'
     }
 
-    // Remove line break validation since we auto-fix it in sanitization
-
     if (lastPostTime) {
       const timeSinceLastPost = (Date.now() - lastPostTime) / 1000
       if (timeSinceLastPost < RATE_LIMIT_SECONDS) {
@@ -97,18 +94,13 @@ export function PostSubmissionForm({
   }
 
   const handleCreatePost = async () => {
-    console.log('handleCreatePost called', { isSubmitting, newPostContent })
     if (isSubmitting) return
 
     setError(null)
 
-    // Sanitize content first (this will fix line breaks automatically)
     const sanitizedContent = sanitizeContent(newPostContent.trim())
-    console.log('Sanitized content:', sanitizedContent)
 
-    // Then validate the sanitized content
     const validationError = validatePost(sanitizedContent)
-    console.log('Validation error:', validationError)
     if (validationError) {
       setError(validationError)
       return
@@ -116,9 +108,7 @@ export function PostSubmissionForm({
 
     try {
       setIsSubmitting(true)
-      console.log('Calling onSubmit with sanitized content...')
       await onSubmit(sanitizedContent)
-      console.log('onSubmit completed successfully')
       setNewPostContent('')
       setLastPostTime(Date.now())
       setError(null)
@@ -139,17 +129,15 @@ export function PostSubmissionForm({
     if (!trimmedContent) return true
     if (trimmedContent.length < MIN_POST_LENGTH) return true
     if (trimmedContent.length > MAX_POST_LENGTH) return true
-    // Don't disable for line breaks - we auto-fix them
     return false
   }
 
   return (
     <div className="space-y-4">
-      {/* Create Post */}
       <div className="bg-card rounded-lg shadow border p-4">
         <textarea
           className="w-full bg-background border rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="¿Qué estás pensando?"
+          placeholder={placeholder}
           rows={4}
           value={newPostContent}
           onChange={(e) => setNewPostContent(e.target.value)}
@@ -172,12 +160,11 @@ export function PostSubmissionForm({
             className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {isSubmitting && <Spinner className="size-4" />}
-            {isSubmitting ? 'Publicando...' : 'Publicar'}
+            {isSubmitting ? buttonTextSubmitting : buttonText}
           </button>
         </div>
       </div>
 
-      {/* Error Message */}
       {error && (
         <div className="bg-destructive/10 border border-destructive rounded-lg p-4 text-destructive text-sm">
           {error}
