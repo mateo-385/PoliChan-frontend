@@ -34,7 +34,7 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
     <div className="w-full p-8 space-y-6 bg-card text-card-foreground rounded-lg shadow-md border">
       <div className="text-center">
         <h1 className="text-2xl font-bold">Iniciar Sesión</h1>
-        <p className="text-muted-foreground">Bienvenido de nuevo a PoliChan</p>
+        <p className="text-muted-foreground">Bienvenido de nuevo a Poli-Chan</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -47,6 +47,8 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
             onChange={(e) => setUserName(e.target.value)}
             placeholder="usuario123"
             required
+            maxLength={50}
+            minLength={3}
           />
         </div>
 
@@ -60,6 +62,8 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
+              minLength={6}
+              maxLength={100}
               className="pr-10"
             />
           </div>

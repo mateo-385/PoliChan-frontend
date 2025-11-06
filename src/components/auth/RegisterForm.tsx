@@ -51,7 +51,7 @@ export function RegisterForm({
     <div className="w-full p-8 space-y-6 bg-card text-card-foreground rounded-lg shadow-md border">
       <div className="text-center">
         <h1 className="text-2xl font-bold">Crear Cuenta</h1>
-        <p className="text-muted-foreground">Unete a PoliChan</p>
+        <p className="text-muted-foreground">Únete a Poli-Chan</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,6 +65,8 @@ export function RegisterForm({
               onChange={(e) => setFirstName(e.target.value)}
               placeholder="Nombre"
               required
+              minLength={2}
+              maxLength={50}
             />
           </div>
 
@@ -77,6 +79,8 @@ export function RegisterForm({
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Apellido"
               required
+              minLength={2}
+              maxLength={50}
             />
           </div>
         </div>
@@ -94,6 +98,8 @@ export function RegisterForm({
               onChange={(e) => setUserName(e.target.value)}
               placeholder="usuario123"
               required
+              minLength={3}
+              maxLength={50}
             />
           </InputGroup>
         </div>
@@ -109,6 +115,7 @@ export function RegisterForm({
               placeholder="••••••••"
               required
               minLength={6}
+              maxLength={100}
               className="pr-10"
             />
           </div>
@@ -125,6 +132,7 @@ export function RegisterForm({
               placeholder="••••••••"
               required
               minLength={6}
+              maxLength={100}
               className="pr-10"
             />
           </div>
@@ -136,7 +144,7 @@ export function RegisterForm({
           </div>
         )}
 
-        <Button type="submit" disabled={isLoading} className="w-full">
+        <Button type="submit" disabled={isLoading} className="w-full ">
           {isLoading && <Spinner className="size-4 mr-2" />}
           {isLoading ? 'Creando cuenta...' : 'Registrarse'}
         </Button>
