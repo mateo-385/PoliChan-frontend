@@ -2,6 +2,7 @@ import { Heart, MessageCircle } from 'lucide-react'
 import { postService } from '@/services/post.service'
 import type { Post } from '@/types/post.types'
 import { getAvatarColor, getInitials } from '@/lib/avatar'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 interface PostCardProps {
   post: Post
@@ -16,6 +17,7 @@ export function PostCard({
   onClick,
   showActions = true,
 }: PostCardProps) {
+  const isMobile = useIsMobile()
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     if (onLike) {
@@ -41,31 +43,81 @@ export function PostCard({
 
   return (
     <div
-      className="bg-card rounded-lg shadow border p-5 cursor-pointer hover:border-primary/50 transition-colors"
+      className={
+        isMobile
+          ? 'bg-card rounded-lg shadow border p-3 cursor-pointer hover:border-primary/50 transition-colors'
+          : 'bg-card rounded-lg shadow border p-5 cursor-pointer hover:border-primary/50 transition-colors'
+      }
       onClick={handlePostClick}
     >
-      <div className="flex items-start gap-4">
+      <div
+        className={
+          isMobile ? 'flex items-start gap-2' : 'flex items-start gap-4'
+        }
+      >
         <div
-          className="size-10 flex items-center justify-center rounded-full font-bold shrink-0 text-white"
+          className={
+            isMobile
+              ? 'size-8 flex items-center justify-center rounded-full font-bold shrink-0 text-white text-sm'
+              : 'size-10 flex items-center justify-center rounded-full font-bold shrink-0 text-white'
+          }
           style={{ backgroundColor: avatarColor }}
         >
           {initials}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold truncate">{authorName}</h3>
-            <span className="text-muted-foreground text-sm truncate">
+          <div
+            className={
+              isMobile
+                ? 'flex items-center gap-1 text-xs'
+                : 'flex items-center gap-2'
+            }
+          >
+            <h3
+              className={
+                isMobile
+                  ? 'font-semibold truncate text-sm'
+                  : 'font-semibold truncate'
+              }
+            >
+              {authorName}
+            </h3>
+            <span
+              className={
+                isMobile
+                  ? 'text-muted-foreground text-xs truncate'
+                  : 'text-muted-foreground text-sm truncate'
+              }
+            >
               @{authorUsername}
             </span>
-            <span className="text-muted-foreground text-sm shrink-0">
+            <span
+              className={
+                isMobile
+                  ? 'text-muted-foreground text-xs shrink-0'
+                  : 'text-muted-foreground text-sm shrink-0'
+              }
+            >
               · {postService.formatTimeAgo(createdAt)}
             </span>
           </div>
-          <p className="mt-2 text-foreground whitespace-pre-wrap wrap-break-word">
+          <p
+            className={
+              isMobile
+                ? 'mt-1 text-sm text-foreground whitespace-pre-wrap wrap-break-word'
+                : 'mt-2 text-foreground whitespace-pre-wrap wrap-break-word'
+            }
+          >
             {post.content}
           </p>
           {showActions && (
-            <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground cursor-pointer">
+            <div
+              className={
+                isMobile
+                  ? 'flex items-center gap-4 mt-2 text-xs text-muted-foreground cursor-pointer'
+                  : 'flex items-center gap-6 mt-4 text-sm text-muted-foreground cursor-pointer'
+              }
+            >
               <button
                 onClick={(e) => {
                   e.stopPropagation()
@@ -73,7 +125,7 @@ export function PostCard({
                 }}
                 className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors"
               >
-                <MessageCircle className="size-5" />
+                <MessageCircle className={isMobile ? 'size-4' : 'size-5'} />
                 <span>{post.commentsCount}</span>
               </button>
               <button
@@ -84,8 +136,8 @@ export function PostCard({
               >
                 <Heart
                   style={{
-                    width: '22px', // 1.25rem = 20px
-                    height: '22px', // 1.25rem = 20px
+                    width: isMobile ? '16px' : '22px',
+                    height: isMobile ? '16px' : '22px',
                   }}
                   className={`  ${
                     post.likedByCurrentUser ? 'fill-current' : ''

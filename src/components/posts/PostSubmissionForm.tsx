@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { Spinner } from '@/components/ui/spinner'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 const MAX_POST_LENGTH = 280
 const MIN_POST_LENGTH = 1
@@ -28,6 +29,7 @@ export function PostSubmissionForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastPostTime, setLastPostTime] = useState<number | null>(null)
+  const isMobile = useIsMobile()
 
   const sanitizeContent = (content: string): string => {
     let sanitized = content
@@ -133,18 +135,34 @@ export function PostSubmissionForm({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="bg-card rounded-lg shadow border p-4">
+    <div className={isMobile ? 'space-y-2' : 'space-y-4'}>
+      <div
+        className={
+          isMobile
+            ? 'bg-card rounded-lg shadow border p-3'
+            : 'bg-card rounded-lg shadow border p-4'
+        }
+      >
         <textarea
-          className="w-full bg-background border rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+          className={
+            isMobile
+              ? 'w-full bg-background border rounded-md p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary'
+              : 'w-full bg-background border rounded-md p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary'
+          }
           placeholder={placeholder}
-          rows={4}
+          rows={isMobile ? 3 : 4}
           value={newPostContent}
           onChange={(e) => setNewPostContent(e.target.value)}
           disabled={isSubmitting}
           maxLength={MAX_POST_LENGTH}
         />
-        <div className="flex justify-between items-center mt-2">
+        <div
+          className={
+            isMobile
+              ? 'flex justify-between items-center mt-1.5'
+              : 'flex justify-between items-center mt-2'
+          }
+        >
           <span
             className={`text-xs ${
               newPostContent.length > MAX_POST_LENGTH * 0.9
@@ -157,7 +175,11 @@ export function PostSubmissionForm({
           <button
             onClick={handleCreatePost}
             disabled={isPostDisabled()}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className={
+              isMobile
+                ? 'px-3 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
+                : 'px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2'
+            }
           >
             {isSubmitting && <Spinner className="size-4" />}
             {isSubmitting ? buttonTextSubmitting : buttonText}
@@ -166,7 +188,13 @@ export function PostSubmissionForm({
       </div>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive rounded-lg p-4 text-destructive text-sm">
+        <div
+          className={
+            isMobile
+              ? 'bg-destructive/10 border border-destructive rounded-lg p-2 text-destructive text-xs'
+              : 'bg-destructive/10 border border-destructive rounded-lg p-4 text-destructive text-sm'
+          }
+        >
           {error}
         </div>
       )}
