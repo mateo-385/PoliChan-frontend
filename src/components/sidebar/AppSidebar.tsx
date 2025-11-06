@@ -6,13 +6,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
 } from '@/components/ui/sidebar'
 import { Home, User } from 'lucide-react'
 import { NavUser } from './NavUser'
 import { NavMain } from './NavMain'
 import { useLocation } from 'react-router-dom'
-import logo from '@/assets/ipf-logo.png'
+import logo from '@/assets/ipf-logo.svg'
 
 const navItems = [
   {
@@ -36,16 +35,16 @@ export function AppSidebar() {
   }))
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <div className="cursor-default">
+              <div className="cursor-default ">
                 <div className="  text-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <img src={logo} alt="" />
                 </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
+                <div className="grid flex-1 text-left text-lg leading-tight">
                   <span className="truncate font-semibold">Poli-Chan</span>
                 </div>
               </div>
@@ -61,7 +60,6 @@ export function AppSidebar() {
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }
