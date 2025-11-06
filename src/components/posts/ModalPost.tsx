@@ -157,7 +157,7 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
         <DialogContent
           className={
             isMobile
-              ? 'max-w-full w-full h-screen p-0'
+              ? 'max-w-full w-full h-screen p-0 [&>button]:top-14 [&>button]:right-6'
               : 'max-w-2xl w-full max-h-[80vh] p-0'
           }
         >
@@ -168,7 +168,7 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
           <ScrollArea
             className={
               isMobile
-                ? 'h-[90vh] flex flex-col p-3 gap-2'
+                ? 'h-screen flex flex-col pt-12 px-3 pb-3 gap-2'
                 : 'h-[80vh] flex flex-col p-6 gap-4'
             }
           >

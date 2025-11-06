@@ -35,7 +35,15 @@ function LayoutContent({ children }: LayoutProps) {
           </div>
         </header>
         <div className="flex-1 overflow-auto">
-          <div className="max-w-3xl mx-auto w-full px-6">{children}</div>
+          <div
+            className={
+              isMobile
+                ? 'max-w-3xl mx-auto w-full px-3'
+                : 'max-w-3xl mx-auto w-full px-6'
+            }
+          >
+            {children}
+          </div>
         </div>
       </div>
     </main>
