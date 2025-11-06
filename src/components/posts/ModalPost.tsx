@@ -15,6 +15,7 @@ import { Heart, MessageCircle } from 'lucide-react'
 import { PostSubmissionForm } from '@/components/posts'
 import { useAuth } from '@/hooks/use-auth'
 import { getAvatarColor, getInitials } from '@/lib/avatar'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 type ModalPostProps = {
   isOpen: boolean
@@ -27,6 +28,7 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { user } = useAuth()
+  const isMobile = useIsMobile()
 
   const loadPost = useCallback(async () => {
     if (!postId) return
@@ -145,13 +147,31 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogOverlay className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-        <DialogContent className="max-w-2xl w-full max-h-[80vh] p-0 ">
+      <DialogOverlay
+        className={
+          isMobile
+            ? 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2'
+            : 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4'
+        }
+      >
+        <DialogContent
+          className={
+            isMobile
+              ? 'max-w-full w-full h-screen p-0'
+              : 'max-w-2xl w-full max-h-[80vh] p-0'
+          }
+        >
           <DialogTitle className="sr-only">Publicación</DialogTitle>
           <DialogDescription className="sr-only">
             Vista detallada de la publicación y sus comentarios
           </DialogDescription>
-          <ScrollArea className="h-[80vh] flex flex-col p-6 gap-4">
+          <ScrollArea
+            className={
+              isMobile
+                ? 'h-[90vh] flex flex-col p-3 gap-2'
+                : 'h-[80vh] flex flex-col p-6 gap-4'
+            }
+          >
             {error && <p className="text-red-500">{error}</p>}
             {isLoading ? (
               <div className="space-y-6">
@@ -207,9 +227,17 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
               postData.post &&
               postData.post.user && (
                 <>
-                  <DialogHeader className="flex-row mb-2 gap-3 ">
+                  <DialogHeader
+                    className={
+                      isMobile ? 'flex-row mb-1 gap-2' : 'flex-row mb-2 gap-3'
+                    }
+                  >
                     <div
-                      className="size-12 flex items-center justify-center rounded-full font-bold text-lg shrink-0 text-white "
+                      className={
+                        isMobile
+                          ? 'size-10 flex items-center justify-center rounded-full font-bold text-base shrink-0 text-white'
+                          : 'size-12 flex items-center justify-center rounded-full font-bold text-lg shrink-0 text-white'
+                      }
                       style={{
                         backgroundColor: getAvatarColor(postData.post.user.id),
                       }}
@@ -221,9 +249,21 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col ">
-                        <h3 className="font-semibold truncate w-96 ">
+                        <h3
+                          className={
+                            isMobile
+                              ? 'font-semibold truncate text-sm'
+                              : 'font-semibold truncate w-96'
+                          }
+                        >
                           {`${postData.post.user.firstName} ${postData.post.user.lastName}`}
-                          <span className="text-muted-foreground text-sm">
+                          <span
+                            className={
+                              isMobile
+                                ? 'text-muted-foreground text-xs'
+                                : 'text-muted-foreground text-sm'
+                            }
+                          >
                             {' '}
                             ·{' '}
                             {postService.formatTimeAgo(
@@ -232,7 +272,13 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                           </span>
                         </h3>
 
-                        <span className="text-muted-foreground text-sm">
+                        <span
+                          className={
+                            isMobile
+                              ? 'text-muted-foreground text-xs'
+                              : 'text-muted-foreground text-sm'
+                          }
+                        >
                           @
                           {postData.post.user.userName ||
                             postData.post.user.username ||
@@ -242,7 +288,13 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                     </div>
                   </DialogHeader>
 
-                  <p className="mt-3 text-foreground text-base leading-relaxed whitespace-pre-wrap">
+                  <p
+                    className={
+                      isMobile
+                        ? 'mt-2 text-foreground text-sm leading-relaxed whitespace-pre-wrap'
+                        : 'mt-3 text-foreground text-base leading-relaxed whitespace-pre-wrap'
+                    }
+                  >
                     {postData.post.content}
                   </p>
 
