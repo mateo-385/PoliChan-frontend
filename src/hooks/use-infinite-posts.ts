@@ -203,9 +203,14 @@ export function useInfinitePosts(limit: number = 20) {
       const data = await postService.getTimelinePosts({ limit: 50 })
       const postsArray = Array.isArray(data) ? data : []
 
-      const currentFirstId = firstPostIdRef.current || posts[0]?.id
+      console.log('Loading new posts...')
+      console.log('Current first post ID:', firstPostIdRef.current)
+      console.log('Fetched posts count:', postsArray.length)
+
+      const currentFirstId = firstPostIdRef.current
 
       if (!currentFirstId) {
+        console.log('No current first ID, replacing all posts')
         const processedPosts = processPostsWithLikeStatus(postsArray, user?.id)
         setPosts(processedPosts)
         if (processedPosts.length > 0) {
@@ -218,13 +223,31 @@ export function useInfinitePosts(limit: number = 20) {
       const firstPostIndex = postsArray.findIndex(
         (p) => p.id === currentFirstId
       )
+      console.log('First post index in new data:', firstPostIndex)
+
       const newPosts =
         firstPostIndex > 0 ? postsArray.slice(0, firstPostIndex) : []
+
+      console.log('New posts to add:', newPosts.length)
 
       if (newPosts.length > 0) {
         const processedPosts = processPostsWithLikeStatus(newPosts, user?.id)
 
-        setPosts((prev) => [...processedPosts, ...prev])
+        console.log('Adding new posts to the TOP')
+        setPosts((prev) => {
+          console.log('Previous posts count:', prev.length)
+
+          const existingIds = new Set(prev.map((p) => p.id))
+          const uniqueNewPosts = processedPosts.filter(
+            (p) => !existingIds.has(p.id)
+          )
+
+          console.log('Unique new posts to add:', uniqueNewPosts.length)
+
+          const updated = [...uniqueNewPosts, ...prev]
+          console.log('Updated posts count:', updated.length)
+          return updated
+        })
         firstPostIdRef.current = processedPosts[0].id
       }
 
@@ -232,7 +255,7 @@ export function useInfinitePosts(limit: number = 20) {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load new posts')
     }
-  }, [user, posts])
+  }, [user])
 
   const toggleLike = useCallback(
     async (postId: string) => {
