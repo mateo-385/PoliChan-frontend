@@ -28,7 +28,7 @@ function LayoutContent({ children }: LayoutProps) {
   return (
     <main className="flex-1 w-full">
       <div className="flex flex-col h-full">
-        <header className="sticky top-0 z-10 bg-background border-b">
+        <header className="sticky top-0 z-5 bg-background border-b">
           <div className="flex items-center gap-4 p-4">
             <SidebarTrigger className="md:hidden" size={'lg'} />
             <h1 className="text-xl font-semibold">{pageTitle}</h1>
