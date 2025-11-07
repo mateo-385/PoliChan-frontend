@@ -1,46 +1,63 @@
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import { UserPlus } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import { useIsMobile } from '@/hooks/use-mobile'
 
-interface UserRegisteredNotificationProps {
+interface CommentNotificationProps {
   userName: string
-  firstName: string
-  lastName: string
-  onClose?: () => void
+  postId: string
+  onSeePost: (postId: string) => void
+  onDismiss: () => void
 }
 
-export function UserRegisteredNotification({
+export function CommentNotification({
   userName,
-  firstName,
-  lastName,
-  onClose,
-}: UserRegisteredNotificationProps) {
+  postId,
+  onSeePost,
+  onDismiss,
+}: CommentNotificationProps) {
   const isMobile = useIsMobile()
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      onClose?.()
-    }, 5000)
+      onDismiss()
+    }, 4000)
 
     return () => clearTimeout(timer)
-  }, [onClose])
+  }, [onDismiss])
 
-  const fullName = `${firstName} ${lastName}`
+  const handleSeePost = () => {
+    onSeePost(postId)
+    onDismiss()
+  }
+
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onDismiss()
+  }
 
   return (
-    <Alert className={isMobile ? 'w-[calc(100vw-2rem)] max-w-xs p-3' : 'w-96'}>
-      <UserPlus className={isMobile ? 'h-3 w-3' : 'h-4 w-4'} />
+    <Alert
+      className={
+        isMobile
+          ? 'w-[calc(100vw-2rem)] max-w-xs p-3 cursor-pointer transition-colors z-50'
+          : 'w-96 cursor-pointer hover:bg-accent/50 transition-colors z-[3000px]'
+      }
+      onClick={handleSeePost}
+    >
+      <MessageCircle className={isMobile ? 'h-3 w-3' : 'h-4 w-4'} />
       <AlertTitle className={isMobile ? 'text-sm' : ''}>
-        ¡Bienvenido <span className="font-bold">@{userName} </span>! 🎉
+        <span className="font-bold">{userName}</span> comentó en tu publicación
       </AlertTitle>
-      <AlertDescription className={isMobile ? 'text-xs' : ''}>
-        {fullName} se unió a PoliChan
+      <AlertDescription
+        className={
+          isMobile ? 'text-xs text-muted-foreground' : 'text-muted-foreground'
+        }
+      >
+        Toca para ver el comentario
       </AlertDescription>
       <button
-        onClick={() => {
-          onClose?.()
-        }}
+        onClick={handleClose}
         className={
           isMobile
             ? 'absolute top-1.5 right-1.5 text-muted-foreground hover:text-foreground z-10'
