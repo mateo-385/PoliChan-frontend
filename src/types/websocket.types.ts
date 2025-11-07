@@ -34,17 +34,30 @@ export interface PostLikedMessage extends WebSocketMessage {
   }
 }
 
-export interface PostUnlikedMessage extends WebSocketMessage {
-  type: 'post-unliked'
+export interface PostLikeRemovedMessage extends WebSocketMessage {
+  type: 'like-removed'
   data: {
     postId: string
     userId: string
-    acurredAt: number
+    occurredAt: string
   }
 }
 
 export interface CommentCreatedMessage extends WebSocketMessage {
   type: 'comment-created'
+  data: {
+    commentId: string
+    postId: string
+    userId: string
+    content: string
+    likesCount: number
+    occurredAt: string
+  }
+  timestamp: string
+}
+
+export interface CommentUpdatedMessage extends WebSocketMessage {
+  type: 'comment-updated'
   data: {
     commentId: string
     postId: string

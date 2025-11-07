@@ -116,8 +116,8 @@ export function useInfinitePosts(limit: number = 20) {
       )
     },
     onPostUnliked: (postId, userId) => {
-      setPosts((prevPosts) =>
-        prevPosts.map((post) => {
+      setPosts((prevPosts) => {
+        const updated = prevPosts.map((post) => {
           if (post.id === postId) {
             const newLikes = post.likes.filter((id) => id !== userId)
 
@@ -126,6 +126,20 @@ export function useInfinitePosts(limit: number = 20) {
               likes: newLikes,
               likesCount: newLikes.length,
               likedByCurrentUser: user ? newLikes.includes(user.id) : false,
+            }
+          }
+          return post
+        })
+        return updated
+      })
+    },
+    onCommentCreated: (postId) => {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              commentsCount: (post.commentsCount || 0) + 1,
             }
           }
           return post

@@ -91,6 +91,19 @@ export function usePosts() {
         })
       )
     },
+    onCommentCreated: (postId) => {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              commentsCount: (post.commentsCount || 0) + 1,
+            }
+          }
+          return post
+        })
+      )
+    },
   })
 
   const createPost = useCallback(

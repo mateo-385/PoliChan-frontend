@@ -5,16 +5,18 @@ interface UsePostUpdatesOptions {
   onNewPost: () => void
   onPostLiked: (postId: string, userId: string) => void
   onPostUnliked: (postId: string, userId: string) => void
+  onCommentCreated?: (postId: string, commentId: string, userId: string) => void
 }
 
 /**
  * Hook to listen to WebSocket post update events
- * Handles: post-created, like-created, like-deleted
+ * Handles: post-created, like-created, like-deleted, comment-created
  */
 export function usePostUpdates({
   onNewPost,
   onPostLiked,
   onPostUnliked,
+  onCommentCreated,
 }: UsePostUpdatesOptions) {
   const { user } = useAuth()
 
@@ -89,4 +91,33 @@ export function usePostUpdates({
     return () =>
       window.removeEventListener('like-deleted', handleUnlike as EventListener)
   }, [onPostUnliked])
+
+  // Listen for new comments
+  useEffect(() => {
+    if (!onCommentCreated) return
+
+    const handleComment = (e: Event) => {
+      try {
+        const custom = e as CustomEvent
+        const payload = custom.detail as {
+          commentId: string
+          postId: string
+          userId: string
+        }
+
+        if (!payload || !payload.postId || !payload.commentId) return
+
+        onCommentCreated(payload.postId, payload.commentId, payload.userId)
+      } catch {
+        // Ignore invalid comment-created events
+      }
+    }
+
+    window.addEventListener('comment-created', handleComment as EventListener)
+    return () =>
+      window.removeEventListener(
+        'comment-created',
+        handleComment as EventListener
+      )
+  }, [onCommentCreated])
 }

@@ -7,8 +7,9 @@ import type {
   UserRegisteredMessage,
   PostCreatedMessage,
   PostLikedMessage,
-  PostUnlikedMessage,
+  PostLikeRemovedMessage,
   CommentCreatedMessage,
+  CommentUpdatedMessage,
   CommentLikedMessage,
   CommentUnlikedMessage,
 } from '@/types/websocket.types'
@@ -143,10 +144,15 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
         }
       }
 
-      if (data.type === 'like-deleted') {
-        const message = data as PostUnlikedMessage
+      if (
+        data.type === 'post-unliked' ||
+        data.type === 'like-deleted' ||
+        data.type === 'like-removed'
+      ) {
+        const message = data as PostLikeRemovedMessage
 
         try {
+          // Normalize backend "like-removed" to the in-app "like-deleted" event
           const evt = new CustomEvent('like-deleted', { detail: message.data })
           window.dispatchEvent(evt)
         } catch {
@@ -198,6 +204,19 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
                 // Ignore errors - don't show notification if we can't verify
               })
           })
+        }
+      }
+
+      if (data.type === 'comment-updated') {
+        const message = data as CommentUpdatedMessage
+
+        try {
+          const evt = new CustomEvent('comment-updated', {
+            detail: message.data,
+          })
+          window.dispatchEvent(evt)
+        } catch {
+          // Ignore dispatch errors
         }
       }
 

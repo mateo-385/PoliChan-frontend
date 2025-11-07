@@ -69,7 +69,8 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
     } finally {
       setIsLoading(false)
     }
-  }, [postId, user])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [postId])
 
   useEffect(() => {
     if (isOpen && postId) {
@@ -80,7 +81,12 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
   useEffect(() => {
     if (!isMobile || !isOpen) return
 
-    window.history.pushState({ modalOpen: true }, '')
+    const modalState = { modalOpen: true }
+
+    // Only push state if we haven't already
+    if (!window.history.state?.modalOpen) {
+      window.history.pushState(modalState, '')
+    }
 
     const handlePopState = (event: PopStateEvent) => {
       if (isOpen) {
@@ -93,11 +99,18 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
 
     return () => {
       window.removeEventListener('popstate', handlePopState)
-      if (window.history.state?.modalOpen) {
-        window.history.back()
-      }
     }
   }, [isMobile, isOpen, onClose])
+
+  // Clean up history state when modal closes
+  useEffect(() => {
+    if (!isMobile) return
+
+    // When modal closes, remove the history state
+    if (!isOpen && window.history.state?.modalOpen) {
+      window.history.back()
+    }
+  }, [isMobile, isOpen])
 
   useEffect(() => {
     if (!isOpen || !postId) return
@@ -118,20 +131,62 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
     }
   }, [isOpen, postId, user?.id])
 
-  const { isLiked, count, toggleLike } = useLike({
+  const { isLiked, count, toggleLike, setCount } = useLike({
     initialLiked: postData?.post.likedByCurrentUser ?? false,
     initialCount: postData?.post.likesCount ?? 0,
     onLike: async () => {
-      if (user) {
+      if (user && postId) {
         await postService.likePost(postId, user.id)
       }
     },
     onUnlike: async () => {
-      if (user) {
+      if (user && postId) {
         await postService.unlikePost(postId, user.id)
       }
     },
   })
+
+  // Listen for like/unlike events from WebSocket to update the count in real-time
+  useEffect(() => {
+    if (!isOpen || !postId) return
+
+    const handleLikeCreated = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        postId: string
+        userId: string
+      }>
+      // Update count if it's for this post and NOT from current user
+      if (
+        customEvent.detail.postId === postId &&
+        customEvent.detail.userId !== user?.id
+      ) {
+        setCount((prev: number) => prev + 1)
+      }
+    }
+
+    const handleLikeDeleted = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        postId: string
+        userId: string
+      }>
+      // Update count if it's for this post and NOT from current user
+      if (
+        customEvent.detail.postId === postId &&
+        customEvent.detail.userId !== user?.id
+      ) {
+        setCount((prev: number) => Math.max(0, prev - 1))
+      }
+    }
+
+    window.addEventListener('like-created', handleLikeCreated)
+    window.addEventListener('like-deleted', handleLikeDeleted)
+
+    return () => {
+      window.removeEventListener('like-created', handleLikeCreated)
+      window.removeEventListener('like-deleted', handleLikeDeleted)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, postId, user?.id])
 
   const handleCommentSubmitted = async () => {
     if (!postData) return
