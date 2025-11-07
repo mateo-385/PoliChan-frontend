@@ -22,13 +22,20 @@ export interface Post {
 export interface Comment {
   id: string
   postId: string
-  authorId: string
-  authorName: string
-  authorUsername: string
-  authorAvatar?: string
+  userId: string
   content: string
-  createdAt: Date
   likesCount: number
+  likes: string[]
+  timestamps: {
+    createdAt: { value: string }
+    updatedAt: { value: string }
+  }
+  user?: {
+    id: string
+    firstName: string
+    lastName: string
+    username: string
+  }
   likedByCurrentUser?: boolean
 }
 
@@ -39,6 +46,7 @@ export interface CreatePostData {
 
 export interface CreateCommentData {
   postId: string
+  userId: string
   content: string
 }
 

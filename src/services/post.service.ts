@@ -106,8 +106,28 @@ class PostService {
   }
 
   /**
-   * Toggle like on a comment
-   * Note: This endpoint is not yet implemented in the backend
+   * Like a comment
+   */
+  async likeComment(
+    commentId: string,
+    userId: string
+  ): Promise<{ message: string }> {
+    return await postRepository.likeComment(commentId, userId)
+  }
+
+  /**
+   * Unlike a comment
+   */
+  async unlikeComment(
+    commentId: string,
+    userId: string
+  ): Promise<{ message: string }> {
+    return await postRepository.unlikeComment(commentId, userId)
+  }
+
+  /**
+   * Toggle like on a comment (legacy - kept for backward compatibility)
+   * @deprecated Use likeComment/unlikeComment instead for consistency with posts
    */
   async toggleCommentLike(commentId: string): Promise<Comment> {
     // Suppress unused parameter warning - this is a placeholder

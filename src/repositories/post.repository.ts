@@ -33,10 +33,13 @@ export class PostRepository {
    */
   async getPostById(postId: string): Promise<PostWithComments> {
     try {
-      const response = await api.get<Post>(`/posts/${postId}`)
+      const [postResponse, comments] = await Promise.all([
+        api.get<Post>(`/posts/${postId}`),
+        this.getPostComments(postId),
+      ])
       return {
-        post: response.data,
-        comments: [], // TODO
+        post: postResponse.data,
+        comments,
       }
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -253,16 +256,14 @@ export class PostRepository {
 
   /**
    * Create a comment on a post
-   * Note: This endpoint might need to be updated when backend implements it
    */
   async createComment(data: CreateCommentData): Promise<Comment> {
     try {
-      const response = await api.post<Comment>(
-        `/posts/${data.postId}/comments`,
-        {
-          content: data.content,
-        }
-      )
+      const response = await api.post<Comment>(`/comments`, {
+        postId: data.postId,
+        userId: data.userId,
+        content: data.content,
+      })
       return response.data
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
@@ -278,18 +279,76 @@ export class PostRepository {
 
   /**
    * Get comments for a post
-   * Note: This endpoint might need to be updated when backend implements it
    */
   async getPostComments(postId: string): Promise<Comment[]> {
     try {
       const response = await api.get<Comment[]>(`/posts/${postId}/comments`)
-      return response.data
+      // Sort comments by creation date, newest first
+      return response.data.sort((a, b) => {
+        const dateA = new Date(a.timestamps.createdAt.value).getTime()
+        const dateB = new Date(b.timestamps.createdAt.value).getTime()
+        return dateB - dateA // Newest first
+      })
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         const errorMessage =
           error.response?.data?.error ||
           error.response?.data?.message ||
           'Failed to fetch comments'
+        throw new Error(errorMessage)
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Like a comment
+   * POST /api/comments/:commentId/like
+   * Body: { userId: string }
+   */
+  async likeComment(
+    commentId: string,
+    userId: string
+  ): Promise<{ message: string }> {
+    try {
+      const response = await api.post<{ message: string }>(
+        `/comments/${commentId}/like`,
+        { userId }
+      )
+      return response.data
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        const errorMessage =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          'Failed to like comment'
+        throw new Error(errorMessage)
+      }
+      throw error
+    }
+  }
+
+  /**
+   * Unlike a comment
+   * POST /api/comments/:commentId/unlike
+   * Body: { userId: string }
+   */
+  async unlikeComment(
+    commentId: string,
+    userId: string
+  ): Promise<{ message: string }> {
+    try {
+      const response = await api.post<{ message: string }>(
+        `/comments/${commentId}/unlike`,
+        { userId }
+      )
+      return response.data
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        const errorMessage =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          'Failed to unlike comment'
         throw new Error(errorMessage)
       }
       throw error
