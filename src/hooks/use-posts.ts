@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { postService } from '@/services/post.service'
 import type { Post, PostWithComments } from '@/types/post.types'
 import { useAuth } from '@/hooks/use-auth'
+import { usePostUpdates } from '@/hooks/use-post-updates'
 
 /**
  * Helper to check if current user liked posts and add computed property
@@ -18,6 +19,9 @@ function processPostsWithLikeStatus(
   }))
 }
 
+/**
+ * Hook for loading and managing all posts (legacy - prefer useInfinitePosts)
+ */
 export function usePosts() {
   const [posts, setPosts] = useState<Post[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -48,42 +52,46 @@ export function usePosts() {
     loadPosts()
   }, [loadPosts])
 
-  const toggleLike = useCallback(
-    async (postId: string) => {
-      if (!user) {
-        throw new Error('User must be logged in to like posts')
-      }
-      try {
-        const post = posts.find((p) => p.id === postId)
-        const isLiked = post?.likedByCurrentUser || false
+  // Handle WebSocket updates
+  usePostUpdates({
+    onNewPost: () => loadPosts(), // Reload all posts on new post
+    onPostLiked: (postId, userId) => {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            const newLikes = post.likes.includes(userId)
+              ? post.likes
+              : [...post.likes, userId]
 
-        if (isLiked) {
-          await postService.unlikePost(postId, user.id)
-        } else {
-          await postService.likePost(postId, user.id)
-        }
-
-        setPosts((prevPosts) =>
-          prevPosts.map((p) =>
-            p.id === postId
-              ? {
-                  ...p,
-                  likes: isLiked
-                    ? p.likes.filter((id) => id !== user.id)
-                    : [...p.likes, user.id],
-                  likedByCurrentUser: !isLiked,
-                  likesCount: isLiked ? p.likesCount - 1 : p.likesCount + 1,
-                }
-              : p
-          )
-        )
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to like post')
-        await loadPosts()
-      }
+            return {
+              ...post,
+              likes: newLikes,
+              likesCount: newLikes.length,
+              likedByCurrentUser: user ? newLikes.includes(user.id) : false,
+            }
+          }
+          return post
+        })
+      )
     },
-    [user, posts, loadPosts]
-  )
+    onPostUnliked: (postId, userId) => {
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post.id === postId) {
+            const newLikes = post.likes.filter((id) => id !== userId)
+
+            return {
+              ...post,
+              likes: newLikes,
+              likesCount: newLikes.length,
+              likedByCurrentUser: user ? newLikes.includes(user.id) : false,
+            }
+          }
+          return post
+        })
+      )
+    },
+  })
 
   const createPost = useCallback(
     async (content: string) => {
@@ -106,7 +114,6 @@ export function usePosts() {
     isLoading,
     error,
     refetch: loadPosts,
-    toggleLike,
     createPost,
   }
 }
@@ -131,6 +138,10 @@ export function usePost(postId: string | undefined) {
           ...data.post,
           likedByCurrentUser: user ? data.post.likes.includes(user.id) : false,
         },
+        comments: data.comments.map((comment) => ({
+          ...comment,
+          likedByCurrentUser: user ? comment.likes.includes(user.id) : false,
+        })),
       }
 
       setPostData(postWithLikedStatus)
@@ -144,36 +155,6 @@ export function usePost(postId: string | undefined) {
   useEffect(() => {
     loadPost()
   }, [loadPost])
-
-  const toggleLike = useCallback(async () => {
-    if (!postId || !postData || !user) return
-
-    try {
-      const isLiked = postData.post.likedByCurrentUser || false
-
-      if (isLiked) {
-        await postService.unlikePost(postId, user.id)
-      } else {
-        await postService.likePost(postId, user.id)
-      }
-
-      setPostData({
-        ...postData,
-        post: {
-          ...postData.post,
-          likes: isLiked
-            ? postData.post.likes.filter((id) => id !== user.id)
-            : [...postData.post.likes, user.id],
-          likedByCurrentUser: !isLiked,
-          likesCount: isLiked
-            ? postData.post.likesCount - 1
-            : postData.post.likesCount + 1,
-        },
-      })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to like post')
-    }
-  }, [postId, postData, user])
 
   const toggleCommentLike = useCallback(
     async (commentId: string) => {
@@ -196,16 +177,17 @@ export function usePost(postId: string | undefined) {
 
   const createComment = useCallback(
     async (content: string) => {
-      if (!postId || !postData) return
+      if (!postId || !postData || !user) return
 
       try {
         const newComment = await postService.createComment({
           postId,
+          userId: user.id,
           content,
         })
         setPostData({
           ...postData,
-          comments: [...postData.comments, newComment],
+          comments: [newComment, ...postData.comments],
           post: {
             ...postData.post,
             commentsCount: (postData.post.commentsCount || 0) + 1,
@@ -217,7 +199,7 @@ export function usePost(postId: string | undefined) {
         throw err
       }
     },
-    [postId, postData]
+    [postId, postData, user]
   )
 
   return {
@@ -225,7 +207,6 @@ export function usePost(postId: string | undefined) {
     isLoading,
     error,
     refetch: loadPost,
-    toggleLike,
     toggleCommentLike,
     createComment,
   }
