@@ -118,8 +118,8 @@ export function PostCard({
           <p
             className={
               isMobile
-                ? 'mt-1 text-sm text-foreground whitespace-pre-wrap wrap-break-word'
-                : 'mt-2 text-foreground whitespace-pre-wrap wrap-break-word'
+                ? 'mt-1 text-sm text-foreground whitespace-pre-wrap break-all'
+                : 'mt-2 text-foreground whitespace-pre-wrap break-all'
             }
           >
             {post.content}

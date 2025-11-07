@@ -326,8 +326,8 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                   <p
                     className={
                       isMobile
-                        ? 'mt-2 text-foreground text-sm leading-relaxed whitespace-pre-wrap'
-                        : 'mt-3 text-foreground text-base leading-relaxed whitespace-pre-wrap'
+                        ? 'mt-2 text-foreground text-sm leading-relaxed whitespace-pre-wrap break-all'
+                        : 'mt-3 text-foreground text-base leading-relaxed whitespace-pre-wrap break-all'
                     }
                   >
                     {postData.post.content}

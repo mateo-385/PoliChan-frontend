@@ -123,8 +123,8 @@ export function UserPostsList({
             <p
               className={
                 isMobile
-                  ? 'text-sm text-foreground whitespace-pre-wrap'
-                  : 'text-foreground whitespace-pre-wrap'
+                  ? 'text-sm text-foreground whitespace-pre-wrap break-all'
+                  : 'text-foreground whitespace-pre-wrap break-all'
               }
             >
               {post.content}

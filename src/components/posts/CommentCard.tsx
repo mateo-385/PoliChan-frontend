@@ -136,8 +136,8 @@ export function CommentCard({ comment }: CommentCardProps) {
       <p
         className={
           isMobile
-            ? 'mt-1.5 text-foreground text-xs leading-relaxed whitespace-pre-wrap'
-            : 'mt-2 text-foreground text-sm leading-relaxed whitespace-pre-wrap'
+            ? 'mt-1.5 text-foreground text-xs leading-relaxed whitespace-pre-wrap break-all'
+            : 'mt-2 text-foreground text-sm leading-relaxed whitespace-pre-wrap break-all'
         }
       >
         {comment.content}
