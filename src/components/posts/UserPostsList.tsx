@@ -107,7 +107,7 @@ export function UserPostsList({
                 className={
                   isMobile
                     ? 'font-semibold truncate text-sm'
-                    : 'font-semibold truncate w-96'
+                    : 'font-semibold truncate max-w-80'
                 }
               >{`${post.user!.firstName} ${post.user!.lastName}`}</span>
               <span

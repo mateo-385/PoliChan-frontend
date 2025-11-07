@@ -15,7 +15,6 @@ export function FeedPage() {
     isLoadingMore,
     error,
     hasMore,
-    toggleLike,
     createPost,
     loadMore,
     newPostsCount,
@@ -46,8 +45,9 @@ export function FeedPage() {
       )
 
       if (previousFirstIndex > 0) {
-        const newPosts = posts.slice(0, previousFirstIndex)
-        const newIds = new Set(newPosts.map((p) => p.id))
+        // Only animate the first new post
+        const firstNewPostId = posts[0].id
+        const newIds = new Set([firstNewPostId])
         setNewPostIds(newIds)
 
         const timer = setTimeout(() => {
@@ -62,7 +62,6 @@ export function FeedPage() {
     previousFirstPostIdRef.current = currentFirstPostId
   }, [posts])
 
-  // Intersection observer for bottom (infinite scroll)
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
@@ -87,7 +86,6 @@ export function FeedPage() {
     }
   }, [hasMore, isLoadingMore, loadMore])
 
-  // Intersection observer for top (auto-load new posts)
   useEffect(() => {
     const topSentinel = topSentinelRef.current
     if (!topSentinel) return
@@ -133,6 +131,21 @@ export function FeedPage() {
     }
   }, [])
 
+  useEffect(() => {
+    const handleOpenPostModal = (event: Event) => {
+      const customEvent = event as CustomEvent<{ postId: string }>
+      if (customEvent.detail?.postId) {
+        handlePostClick(customEvent.detail.postId)
+      }
+    }
+
+    window.addEventListener('open-post-modal', handleOpenPostModal)
+
+    return () => {
+      window.removeEventListener('open-post-modal', handleOpenPostModal)
+    }
+  }, [])
+
   const handlePostClick = (postId: string) => {
     setSelectedPostId(postId)
     setIsModalOpen(true)
@@ -140,10 +153,6 @@ export function FeedPage() {
 
   const handlePostSubmit = async (content: string) => {
     await createPost(content)
-  }
-
-  const handleToggleLike = async (postId: string) => {
-    await toggleLike(postId)
   }
 
   const handleNewPostsClick = () => {
@@ -210,11 +219,11 @@ export function FeedPage() {
           </Button>
         </div>
       )}
-      <div className=" mx-auto space-y-4">
+      <div className=" mx-auto space-y-3">
         <div ref={topSentinelRef} className="h-1" />
         <PostSubmissionForm
           onSubmit={handlePostSubmit}
-          onPostCreated={() => {}}
+          onPostCreated={loadNewPosts}
           placeholder="¿Qué estás pensando?"
         />
 
@@ -266,11 +275,7 @@ export function FeedPage() {
                     : ''
                 }
               >
-                <PostCard
-                  post={post}
-                  onLike={handleToggleLike}
-                  onClick={handlePostClick}
-                />
+                <PostCard post={post} onClick={handlePostClick} />
               </div>
             ))}
 

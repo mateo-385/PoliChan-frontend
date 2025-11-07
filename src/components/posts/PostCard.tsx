@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
 import { Heart, MessageCircle } from 'lucide-react'
 import { postService } from '@/services/post.service'
 import type { Post } from '@/types/post.types'
 import { getAvatarColor, getInitials } from '@/lib/avatar'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useLike } from '@/hooks/use-like'
+import { useAuth } from '@/hooks/use-auth'
 
 interface PostCardProps {
   post: Post
@@ -19,32 +20,24 @@ export function PostCard({
   showActions = true,
 }: PostCardProps) {
   const isMobile = useIsMobile()
+  const { user } = useAuth()
 
-  // Optimistic UI state
-  const [optimisticLiked, setOptimisticLiked] = useState(
-    post.likedByCurrentUser
-  )
-  const [optimisticCount, setOptimisticCount] = useState(post.likesCount)
-
-  // Sync with prop changes
-  useEffect(() => {
-    setOptimisticLiked(post.likedByCurrentUser)
-    setOptimisticCount(post.likesCount)
-  }, [post.likedByCurrentUser, post.likesCount])
-
-  const handleLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-
-    // Optimistic update
-    setOptimisticLiked(!optimisticLiked)
-    setOptimisticCount(
-      optimisticLiked ? optimisticCount - 1 : optimisticCount + 1
-    )
-
-    if (onLike) {
-      onLike(post.id)
-    }
-  }
+  const { isLiked, count, toggleLike } = useLike({
+    initialLiked: post.likedByCurrentUser ?? false,
+    initialCount: post.likesCount,
+    onLike: async () => {
+      if (user) {
+        await postService.likePost(post.id, user.id)
+        if (onLike) onLike(post.id)
+      }
+    },
+    onUnlike: async () => {
+      if (user) {
+        await postService.unlikePost(post.id, user.id)
+        if (onLike) onLike(post.id)
+      }
+    },
+  })
 
   const handlePostClick = () => {
     if (onClick) {
@@ -86,7 +79,7 @@ export function PostCard({
         >
           {initials}
         </div>
-        <div className="flex-1 min-w-0">
+        <div className="flex-1  ">
           <div
             className={
               isMobile
@@ -150,9 +143,9 @@ export function PostCard({
                 <span>{post.commentsCount}</span>
               </button>
               <button
-                onClick={handleLikeClick}
+                onClick={toggleLike}
                 className={`flex items-center gap-1.5 cursor-pointer hover:text-red-400 transition-colors ${
-                  optimisticLiked ? 'text-red-500' : ''
+                  isLiked ? 'text-red-500' : ''
                 }`}
               >
                 <Heart
@@ -161,10 +154,10 @@ export function PostCard({
                     height: isMobile ? '16px' : '22px',
                   }}
                   className={`transition-all ${
-                    optimisticLiked ? 'fill-current scale-110' : 'scale-100'
+                    isLiked ? 'fill-current scale-110' : 'scale-100'
                   }`}
                 />
-                <span>{optimisticCount}</span>
+                <span>{count}</span>
               </button>
             </div>
           )}
