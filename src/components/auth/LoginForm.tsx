@@ -21,10 +21,40 @@ export function LoginForm({ onSubmit, onNavigateToRegister }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Trim fields
+    const trimmedUserName = userName.trim()
+    const trimmedPassword = password.trim()
+
+    // Validate for blank fields
+    if (!trimmedUserName) {
+      setError('El nombre de usuario no puede estar vacío')
+      setIsLoading(false)
+      return
+    }
+
+    if (!trimmedPassword) {
+      setError('La contraseña no puede estar vacía')
+      setIsLoading(false)
+      return
+    }
+
+    if (trimmedUserName.length < 3) {
+      setError('El nombre de usuario debe tener al menos 3 caracteres')
+      setIsLoading(false)
+      return
+    }
+
+    if (trimmedPassword.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres')
+      setIsLoading(false)
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      await onSubmit({ userName, password })
+      await onSubmit({ userName: trimmedUserName, password: trimmedPassword })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {

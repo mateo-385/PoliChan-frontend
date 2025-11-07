@@ -33,15 +33,61 @@ export function RegisterForm({
     e.preventDefault()
     setError('')
 
+    // Trim all fields
+    const trimmedFirstName = firstName.trim()
+    const trimmedLastName = lastName.trim()
+    const trimmedUserName = userName.trim()
+
+    // Validate for blank fields
+    if (!trimmedFirstName) {
+      setError('El nombre no puede estar vacío')
+      return
+    }
+
+    if (!trimmedLastName) {
+      setError('El apellido no puede estar vacío')
+      return
+    }
+
+    if (!trimmedUserName) {
+      setError('El nombre de usuario no puede estar vacío')
+      return
+    }
+
+    if (trimmedFirstName.length < 2) {
+      setError('El nombre debe tener al menos 2 caracteres')
+      return
+    }
+
+    if (trimmedLastName.length < 2) {
+      setError('El apellido debe tener al menos 2 caracteres')
+      return
+    }
+
+    if (trimmedUserName.length < 3) {
+      setError('El nombre de usuario debe tener al menos 3 caracteres')
+      return
+    }
+
     if (password !== confirmPassword) {
       setError('Las contraseñas no coinciden')
+      return
+    }
+
+    if (password.trim().length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres')
       return
     }
 
     setIsLoading(true)
 
     try {
-      await onSubmit({ firstName, lastName, userName, password })
+      await onSubmit({
+        firstName: trimmedFirstName,
+        lastName: trimmedLastName,
+        userName: trimmedUserName,
+        password,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
     } finally {

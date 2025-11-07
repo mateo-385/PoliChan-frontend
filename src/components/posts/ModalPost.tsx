@@ -182,7 +182,14 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose()
+        }
+      }}
+    >
       <DialogOverlay
         className={
           isMobile
