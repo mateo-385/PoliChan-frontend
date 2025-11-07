@@ -11,9 +11,12 @@ import { DialogOverlay } from '@radix-ui/react-dialog'
 import { useEffect, useState, useCallback } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Heart, MessageCircle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Heart, MessageCircle, RefreshCw } from 'lucide-react'
 import { PostSubmissionForm } from '@/components/posts'
+import { CommentCard } from '@/components/posts/CommentCard'
 import { useAuth } from '@/hooks/use-auth'
+import { useLike } from '@/hooks/use-like'
 import { getAvatarColor, getInitials } from '@/lib/avatar'
 import { useIsMobile } from '@/hooks/use-mobile'
 
@@ -27,6 +30,9 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
   const [postData, setPostData] = useState<PostWithComments | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [newCommentId, setNewCommentId] = useState<string | null>(null)
+  const [hasNewComments, setHasNewComments] = useState(false)
+  const [isLoadingNewComments, setIsLoadingNewComments] = useState(false)
   const { user } = useAuth()
   const isMobile = useIsMobile()
 
@@ -50,6 +56,10 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
           ...data.post,
           likedByCurrentUser: user ? data.post.likes.includes(user.id) : false,
         },
+        comments: data.comments.map((comment) => ({
+          ...comment,
+          likedByCurrentUser: user ? comment.likes.includes(user.id) : false,
+        })),
       }
 
       setPostData(postWithLikedStatus)
@@ -67,60 +77,61 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
     }
   }, [isOpen, loadPost, postId])
 
-  const handleToggleLike = async () => {
-    if (!postId || !postData || !user) return
+  useEffect(() => {
+    if (!isMobile || !isOpen) return
 
-    try {
-      const isLiked = postData.post.likedByCurrentUser || false
+    window.history.pushState({ modalOpen: true }, '')
 
-      if (isLiked) {
-        await postService.unlikePost(postId, user.id)
-      } else {
+    const handlePopState = (event: PopStateEvent) => {
+      if (isOpen) {
+        event.preventDefault()
+        onClose()
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      if (window.history.state?.modalOpen) {
+        window.history.back()
+      }
+    }
+  }, [isMobile, isOpen, onClose])
+
+  useEffect(() => {
+    if (!isOpen || !postId) return
+
+    const handleCommentCreated = (event: Event) => {
+      const customEvent = event as CustomEvent
+      const commentData = customEvent.detail
+
+      if (commentData.postId === postId && commentData.userId !== user?.id) {
+        setHasNewComments(true)
+      }
+    }
+
+    window.addEventListener('comment-created', handleCommentCreated)
+
+    return () => {
+      window.removeEventListener('comment-created', handleCommentCreated)
+    }
+  }, [isOpen, postId, user?.id])
+
+  const { isLiked, count, toggleLike } = useLike({
+    initialLiked: postData?.post.likedByCurrentUser ?? false,
+    initialCount: postData?.post.likesCount ?? 0,
+    onLike: async () => {
+      if (user) {
         await postService.likePost(postId, user.id)
       }
-
-      setPostData({
-        ...postData,
-        post: {
-          ...postData.post,
-          likes: isLiked
-            ? postData.post.likes.filter((id) => id !== user.id)
-            : [...postData.post.likes, user.id],
-          likedByCurrentUser: !isLiked,
-          likesCount: isLiked
-            ? postData.post.likesCount - 1
-            : postData.post.likesCount + 1,
-        },
-      })
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Error al dar me gusta a la publicación'
-      )
-      await loadPost()
-    }
-  }
-
-  const handleToggleCommentLike = async (commentId: string) => {
-    if (!postData) return
-
-    try {
-      const updatedComment = await postService.toggleCommentLike(commentId)
-      setPostData({
-        ...postData,
-        comments: postData.comments.map((c) =>
-          c.id === commentId ? updatedComment : c
-        ),
-      })
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Error al dar me gusta al comentario'
-      )
-    }
-  }
+    },
+    onUnlike: async () => {
+      if (user) {
+        await postService.unlikePost(postId, user.id)
+      }
+    },
+  })
 
   const handleCommentSubmitted = async () => {
     if (!postData) return
@@ -128,20 +139,45 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
     try {
       const updatedData = await postService.getPostById(postId)
 
+      const processedComments = updatedData.comments.map((comment) => ({
+        ...comment,
+        likedByCurrentUser: user ? comment.likes.includes(user.id) : false,
+      }))
+
+      const previousCommentIds = new Set(postData.comments.map((c) => c.id))
+      const newComment = processedComments.find(
+        (c) => !previousCommentIds.has(c.id)
+      )
+
+      if (newComment) {
+        setNewCommentId(newComment.id)
+        setTimeout(() => setNewCommentId(null), 1000)
+      }
+
       setPostData({
         ...postData,
         post: {
           ...postData.post,
           commentsCount: updatedData.post.commentsCount,
         },
-        comments: updatedData.comments,
+        comments: processedComments,
       })
+      setHasNewComments(false)
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
           : 'Error al actualizar los comentarios'
       )
+    }
+  }
+
+  const loadNewComments = async () => {
+    setIsLoadingNewComments(true)
+    try {
+      await handleCommentSubmitted()
+    } finally {
+      setIsLoadingNewComments(false)
     }
   }
 
@@ -275,8 +311,8 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                         <span
                           className={
                             isMobile
-                              ? 'text-muted-foreground text-xs'
-                              : 'text-muted-foreground text-sm'
+                              ? 'text-muted-foreground text-xs text-left'
+                              : 'text-muted-foreground text-sm text-left'
                           }
                         >
                           @
@@ -287,7 +323,6 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                       </div>
                     </div>
                   </DialogHeader>
-
                   <p
                     className={
                       isMobile
@@ -297,36 +332,32 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                   >
                     {postData.post.content}
                   </p>
-
                   <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <MessageCircle className="size-5" />
                       {postData.post.commentsCount}
                     </span>
                     <button
-                      onClick={handleToggleLike}
+                      onClick={toggleLike}
                       className={`flex items-center gap-1 cursor-pointer hover:text-red-500 transition-colors ${
-                        postData.post.likedByCurrentUser ? 'text-red-500' : ''
+                        isLiked ? 'text-red-500' : ''
                       }`}
                     >
                       <Heart
                         className="size-5"
-                        fill={
-                          postData.post.likedByCurrentUser
-                            ? 'currentColor'
-                            : 'none'
-                        }
+                        fill={isLiked ? 'currentColor' : 'none'}
                       />
-                      {postData.post.likesCount}
+                      {count}
                     </button>
                   </div>
-
-                  <div className="my-4">
+                  <div className="mt-4 relative">
                     <PostSubmissionForm
                       onPostCreated={handleCommentSubmitted}
                       onSubmit={async (content) => {
+                        if (!user) return
                         await postService.createComment({
                           postId: postId,
+                          userId: user.id,
                           content,
                         })
                       }}
@@ -335,71 +366,42 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                       buttonTextSubmitting="Comentando..."
                     />
                   </div>
-
+                  {hasNewComments && (
+                    <div className="flex justify-center align-middle my-2">
+                      <Button
+                        onClick={loadNewComments}
+                        disabled={isLoadingNewComments}
+                        className="shadow-lg hover:shadow-xl rounded-full cursor-pointer"
+                        size={isMobile ? 'sm' : 'default'}
+                      >
+                        <RefreshCw
+                          className={isLoadingNewComments ? 'animate-spin' : ''}
+                        />
+                        {isLoadingNewComments
+                          ? 'Cargando...'
+                          : 'Nuevos comentarios'}
+                      </Button>
+                    </div>
+                  )}
+                  {!hasNewComments && <div className="h-3"></div>}
                   {postData.comments.length === 0 ? (
                     <p className="text-muted-foreground text-sm text-center py-8">
                       Aún no hay comentarios. ¡Sé el primero en comentar!
                     </p>
                   ) : (
-                    <div className="space-y-4">
-                      {postData.comments.map((comment) => {
-                        const [firstName = '', lastName = ''] =
-                          comment.authorName.split(' ')
-                        const commentInitials = getInitials(firstName, lastName)
-                        return (
-                          <div
-                            key={comment.id}
-                            className="pt-4  bg-card  rounded-lg p-4"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div
-                                className="size-8 flex items-center justify-center rounded-full font-semibold text-sm text-white"
-                                style={{
-                                  backgroundColor: getAvatarColor(
-                                    comment.authorId
-                                  ),
-                                }}
-                              >
-                                {commentInitials}
-                              </div>
-                              <h4 className="font-semibold">
-                                {comment.authorName}
-                              </h4>
-                              <span className="text-muted-foreground text-sm">
-                                @{comment.authorUsername}
-                              </span>
-                              <span className="text-muted-foreground text-sm">
-                                · {postService.formatTimeAgo(comment.createdAt)}
-                              </span>
-                            </div>
-                            <p className="mt-2 text-foreground text-sm leading-relaxed whitespace-pre-wrap">
-                              {comment.content}
-                            </p>
-                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                              <button
-                                onClick={() =>
-                                  handleToggleCommentLike(comment.id)
-                                }
-                                className={`flex items-center gap-1 hover:text-primary transition-colors ${
-                                  comment.likedByCurrentUser
-                                    ? 'text-red-500'
-                                    : ''
-                                }`}
-                              >
-                                <Heart
-                                  className="size-3"
-                                  fill={
-                                    comment.likedByCurrentUser
-                                      ? 'currentColor'
-                                      : 'none'
-                                  }
-                                />
-                                {comment.likesCount}
-                              </button>
-                            </div>
-                          </div>
-                        )
-                      })}
+                    <div className="space-y-2">
+                      {postData.comments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          className={
+                            comment.id === newCommentId
+                              ? 'animate-in fade-in slide-in-from-top-2 duration-500'
+                              : ''
+                          }
+                        >
+                          <CommentCard comment={comment} />
+                        </div>
+                      ))}
                     </div>
                   )}
                 </>
