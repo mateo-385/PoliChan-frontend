@@ -42,3 +42,38 @@ export interface PostUnlikedMessage extends WebSocketMessage {
     acurredAt: number
   }
 }
+
+export interface CommentCreatedMessage extends WebSocketMessage {
+  type: 'comment-created'
+  data: {
+    commentId: string
+    postId: string
+    userId: string
+    content: string
+    likesCount: number
+    occurredAt: string
+  }
+  timestamp: string
+}
+
+export interface CommentLikedMessage extends WebSocketMessage {
+  type: 'comment-liked'
+  data: {
+    commentId: string
+    postId: string
+    userId: string
+    occurredAt: string
+  }
+  timestamp: string
+}
+
+export interface CommentUnlikedMessage extends WebSocketMessage {
+  type: 'comment-unliked'
+  data: {
+    commentId: string
+    postId: string
+    userId: string
+    occurredAt: string
+  }
+  timestamp: string
+}
