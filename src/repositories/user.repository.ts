@@ -1,5 +1,4 @@
 import api from '@/lib/api'
-import { handleError } from '@/lib/error-handler'
 import type { User } from '@/types/auth.types'
 
 export class UserRepository {

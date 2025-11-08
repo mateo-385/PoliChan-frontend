@@ -14,11 +14,10 @@ class UserService {
 
   /**
    * Get all users for mention suggestions
-   * @param limit - Maximum number of users to fetch
    * @returns Array of users
    */
-  async getAllUsers(limit: number = 50): Promise<User[]> {
-    return userRepository.getAllUsers(limit)
+  async getAllUsers(): Promise<User[]> {
+    return userRepository.getAllUsers()
   }
 
   /**
