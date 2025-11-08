@@ -1,4 +1,5 @@
 import { postRepository } from '@/repositories/post.repository'
+import { mentionsRepository } from '@/repositories/mentions.repository'
 // import { mockPostRepository as postRepository } from '@/repositories/post.repository.mock'
 import type {
   Post,
@@ -15,32 +16,85 @@ interface TimelineParams {
 class PostService {
   // Note: setCurrentUserId not needed - backend handles user context via JWT
 
+  /**
+   * Fetch mentions for a post and attach to post object
+   * Returns array of mentioned usernames
+   */
+  private async fetchAndAttachMentions(post: Post): Promise<Post> {
+    try {
+      const response = await mentionsRepository.getPostMentions(post.id)
+      const usernames = [
+        ...new Set(
+          response.mentions
+            .map((m) => m.mentionedUser?.username)
+            .filter(Boolean) as string[]
+        ),
+      ]
+      return {
+        ...post,
+        validMentions: usernames,
+      }
+    } catch {
+      // Silently fail and return post without mentions - fallback to useMentions hook
+      return post
+    }
+  }
+
+  /**
+   * Fetch mentions for multiple posts in parallel with timeout
+   * If mentions take too long, return posts without mentions to prevent loading delay
+   */
+  private async attachMentionsToMultiplePosts(posts: Post[]): Promise<Post[]> {
+    // Create a promise that resolves after 2 seconds (timeout)
+    const timeoutPromise = new Promise<Post[]>((resolve) => {
+      setTimeout(() => {
+        // After 2 seconds, return posts with whatever mentions we have so far
+        resolve(posts)
+      }, 2000)
+    })
+
+    // Fetch all mentions in parallel
+    const mentionsFetchPromise = Promise.all(
+      posts.map((post) => this.fetchAndAttachMentions(post))
+    )
+
+    // Return whichever completes first: all mentions fetched OR 2 second timeout
+    return Promise.race([mentionsFetchPromise, timeoutPromise])
+  }
+
   // ===== QUERIES (Read Operations) =====
 
   /**
    * Get timeline posts with infinite scroll support
+   * Mentions are fetched in parallel and attached to each post
    */
   async getTimelinePosts(params?: TimelineParams): Promise<Post[]> {
     const response = await postRepository.getTimelinePosts(params)
-    return response.posts
+    // Fetch mentions for all posts in parallel (non-blocking)
+    return this.attachMentionsToMultiplePosts(response.posts)
   }
 
   /**
    * Get all posts (legacy method)
+   * Mentions are fetched in parallel and attached to each post
    */
   async getAllPosts(): Promise<Post[]> {
-    return await postRepository.getAllPosts()
+    const posts = await postRepository.getAllPosts()
+    return this.attachMentionsToMultiplePosts(posts)
   }
 
   /**
    * Get most liked posts
+   * Mentions are fetched in parallel and attached to each post
    */
   async getMostLikedPosts(): Promise<Post[]> {
-    return await postRepository.getMostLikedPosts()
+    const posts = await postRepository.getMostLikedPosts()
+    return this.attachMentionsToMultiplePosts(posts)
   }
 
   /**
    * Get post by ID with comments
+   * Note: Comments currently don't have mentions styling
    */
   async getPostById(postId: string): Promise<PostWithComments> {
     return await postRepository.getPostById(postId)
@@ -48,10 +102,11 @@ class PostService {
 
   /**
    * Get posts by user ID
+   * Mentions are fetched in parallel and attached to each post
    */
   async getPostsByUserId(userId: string): Promise<Post[]> {
     const response = await postRepository.getPostsByUserId(userId)
-    return response.posts
+    return this.attachMentionsToMultiplePosts(response.posts)
   }
 
   // ===== COMMANDS (Write Operations) =====

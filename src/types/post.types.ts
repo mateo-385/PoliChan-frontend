@@ -5,6 +5,7 @@ export interface Post {
   likesCount: number
   likes: string[]
   commentsCount?: number
+  validMentions?: string[] // Usernames of mentioned users (loaded from API)
   timestamps: {
     createdAt: { value: string }
     updatedAt: { value: string }
