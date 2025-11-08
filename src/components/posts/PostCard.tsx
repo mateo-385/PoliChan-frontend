@@ -1,12 +1,11 @@
 import { Heart, MessageCircle } from 'lucide-react'
-import { useState, useEffect } from 'react'
 import { postService } from '@/services/post.service'
-import { mentionsRepository } from '@/repositories/mentions.repository'
 import type { Post } from '@/types/post.types'
 import { getAvatarColor, getInitials } from '@/lib/avatar'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useLike } from '@/hooks/use-like'
 import { useAuth } from '@/hooks/use-auth'
+import { useMentions } from '@/hooks/use-mentions'
 import { MentionText } from './MentionText'
 
 interface PostCardProps {
@@ -24,30 +23,7 @@ export function PostCard({
 }: PostCardProps) {
   const isMobile = useIsMobile()
   const { user } = useAuth()
-  const [validMentions, setValidMentions] = useState<string[]>([])
-
-  // Fetch valid mentions for this post
-  useEffect(() => {
-    const fetchMentions = async () => {
-      try {
-        const response = await mentionsRepository.getPostMentions(post.id)
-        // Extract unique usernames from mentions
-        const usernames = [
-          ...new Set(
-            response.mentions
-              .map((m) => m.mentionedUser?.username)
-              .filter(Boolean) as string[]
-          ),
-        ]
-        setValidMentions(usernames)
-      } catch (error) {
-        console.error('Failed to fetch mentions for post:', error)
-        setValidMentions([])
-      }
-    }
-
-    fetchMentions()
-  }, [post.id])
+  const validMentions = useMentions(post.id)
 
   const { isLiked, count, toggleLike } = useLike({
     initialLiked: post.likedByCurrentUser ?? false,
