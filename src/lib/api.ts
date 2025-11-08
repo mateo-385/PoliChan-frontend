@@ -31,6 +31,16 @@ api.interceptors.response.use(
     if (error.response) {
       const message = error.response.data?.message || error.message
 
+      // Log 401 errors for debugging auth issues
+      if (error.response.status === 401) {
+        console.debug('401 Unauthorized response:', {
+          endpoint: error.config?.url,
+          requestData: error.config?.data,
+          responseData: error.response.data,
+          message: error.response.data?.error || error.response.data?.message,
+        })
+      }
+
       return Promise.reject(new Error(message))
     } else if (error.request) {
       return Promise.reject(new Error('No response from server'))
