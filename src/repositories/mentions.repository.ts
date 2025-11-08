@@ -1,10 +1,10 @@
 import api from '@/lib/api'
+import { handleError } from '@/lib/error-handler'
 import type {
   MentionsResponse,
   UserMentionsResponse,
   MarkMentionReadResponse,
 } from '@/types/mentions.types'
-import { AxiosError } from 'axios'
 
 export class MentionsRepository {
   /**
@@ -18,14 +18,7 @@ export class MentionsRepository {
       )
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch mentions'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -38,14 +31,7 @@ export class MentionsRepository {
       const response = await api.get<UserMentionsResponse>('/mentions/user/me')
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch user mentions'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -61,14 +47,7 @@ export class MentionsRepository {
       )
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to mark mention as read'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -83,14 +62,7 @@ export class MentionsRepository {
       )
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch mentioned posts'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -105,14 +77,7 @@ export class MentionsRepository {
       )
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to delete mention'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 }

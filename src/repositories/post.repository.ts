@@ -1,4 +1,5 @@
 import api from '@/lib/api'
+import { handleError } from '@/lib/error-handler'
 import type {
   Post,
   Comment,
@@ -6,7 +7,6 @@ import type {
   CreateCommentData,
   PostWithComments,
 } from '@/types/post.types'
-import { AxiosError } from 'axios'
 
 // API response types
 interface PostsResponse {
@@ -42,14 +42,7 @@ export class PostRepository {
         comments,
       }
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch post'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -73,14 +66,7 @@ export class PostRepository {
       const response = await api.get<PostsResponse>(url)
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch timeline'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -93,14 +79,7 @@ export class PostRepository {
       const response = await api.get<PostsResponse>('/posts')
       return response.data.posts || []
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch posts'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -124,14 +103,7 @@ export class PostRepository {
       const response = await api.get<PostsResponse>(url)
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch user posts'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -150,14 +122,7 @@ export class PostRepository {
       const response = await api.get<PostsResponse>(url)
       return response.data.posts || []
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch most liked posts'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -173,14 +138,7 @@ export class PostRepository {
       const response = await api.post<{ message: string }>('/posts', data)
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to create post'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -197,14 +155,7 @@ export class PostRepository {
       )
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to like post'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -224,14 +175,7 @@ export class PostRepository {
       )
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to unlike post'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -243,14 +187,7 @@ export class PostRepository {
     try {
       await api.delete(`/posts/${postId}`)
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to delete post'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -266,14 +203,7 @@ export class PostRepository {
       })
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to create comment'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -290,14 +220,7 @@ export class PostRepository {
         return dateB - dateA // Newest first
       })
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to fetch comments'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -317,14 +240,7 @@ export class PostRepository {
       )
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to like comment'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 
@@ -344,14 +260,7 @@ export class PostRepository {
       )
       return response.data
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        const errorMessage =
-          error.response?.data?.error ||
-          error.response?.data?.message ||
-          'Failed to unlike comment'
-        throw new Error(errorMessage)
-      }
-      throw error
+      throw new Error(handleError(error))
     }
   }
 }

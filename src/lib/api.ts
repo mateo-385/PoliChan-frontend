@@ -13,12 +13,6 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('auth_token')
-    console.log(
-      'Request interceptor - token present:',
-      !!token,
-      'token:',
-      token?.substring(0, 20) + '...'
-    )
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }

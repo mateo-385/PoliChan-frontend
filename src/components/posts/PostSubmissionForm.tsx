@@ -56,13 +56,6 @@ export function PostSubmissionForm({
     const textBeforeCursor = text.substring(0, cursorPos)
     const lastAtIndex = textBeforeCursor.lastIndexOf('@')
 
-    console.log('handleTextChange:', {
-      text,
-      cursorPos,
-      lastAtIndex,
-      textBeforeCursor,
-    })
-
     if (lastAtIndex === -1) {
       setShowMentionAutocomplete(false)
       setMentionQuery('')
@@ -82,8 +75,6 @@ export function PostSubmissionForm({
 
     // Extract query after @
     const query = textBeforeCursor.substring(lastAtIndex + 1)
-
-    console.log('Query:', query, 'Valid:', /^[a-zA-Z0-9_]*$/.test(query))
 
     // Only show autocomplete if query is alphanumeric/underscore and less than 30 chars
     if (/^[a-zA-Z0-9_]*$/.test(query) && query.length < 30) {
@@ -105,14 +96,6 @@ export function PostSubmissionForm({
 
         const top = Math.floor(metrics.top + topOffset)
         const left = Math.floor(metrics.left + 10)
-
-        console.log('Autocomplete position:', {
-          top,
-          left,
-          metrics,
-          lineHeight,
-          lines,
-        })
 
         setAutocompletePosition({
           top,

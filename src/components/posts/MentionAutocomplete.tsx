@@ -40,12 +40,10 @@ export function MentionAutocomplete({
 
       setIsLoading(true)
       try {
-        console.log('Fetching suggestions for query:', query)
         const results = await userService.getMentionSuggestions(
           query,
           currentUserId
         )
-        console.log('Got suggestions:', results)
         setSuggestions(results)
         setSelectedIndex(0)
       } catch (error) {
@@ -86,7 +84,13 @@ export function MentionAutocomplete({
           break
         case 'Escape':
           e.preventDefault()
-          setSuggestions([])
+          // Notify parent to close the autocomplete if provided, otherwise
+          // just clear suggestions locally.
+          if (onClose) {
+            onClose()
+          } else {
+            setSuggestions([])
+          }
           break
       }
     }
@@ -94,7 +98,7 @@ export function MentionAutocomplete({
     // Attach to document to capture keyboard events from textarea
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, suggestions, selectedIndex, onSelectUser])
+  }, [isOpen, suggestions, selectedIndex, onSelectUser, onClose])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -129,16 +133,16 @@ export function MentionAutocomplete({
       width: window.innerWidth,
       height: window.innerHeight,
     }
-    
+
     // Constrain to viewport with padding
     const padding = 10
     const dropdownWidth = Math.min(300, viewport.width - padding * 2)
-    
+
     adjustedPosition.left = Math.max(
       padding,
       Math.min(position.left, viewport.width - dropdownWidth - padding)
     )
-    
+
     // If dropdown goes below viewport, show it above the textarea instead
     if (adjustedPosition.top + 256 > viewport.height) {
       adjustedPosition.top = Math.max(padding, adjustedPosition.top - 256 - 50)
@@ -158,11 +162,19 @@ export function MentionAutocomplete({
       }}
     >
       {isLoading ? (
-        <div className={`p-2 text-xs text-muted-foreground text-center ${isMobile ? 'text-xs' : 'text-sm'}`}>
+        <div
+          className={`p-2 text-xs text-muted-foreground text-center ${
+            isMobile ? 'text-xs' : 'text-sm'
+          }`}
+        >
           Buscando usuarios...
         </div>
       ) : suggestions.length === 0 ? (
-        <div className={`p-2 text-xs text-muted-foreground text-center ${isMobile ? 'text-xs' : 'text-sm'}`}>
+        <div
+          className={`p-2 text-xs text-muted-foreground text-center ${
+            isMobile ? 'text-xs' : 'text-sm'
+          }`}
+        >
           No se encontraron usuarios
         </div>
       ) : (
@@ -181,10 +193,16 @@ export function MentionAutocomplete({
               onMouseEnter={() => setSelectedIndex(index)}
             >
               <div className="flex flex-col gap-0.5">
-                <span className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                <span
+                  className={`font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}
+                >
                   @{user.username}
                 </span>
-                <span className={`text-muted-foreground ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
+                <span
+                  className={`text-muted-foreground ${
+                    isMobile ? 'text-[10px]' : 'text-xs'
+                  }`}
+                >
                   {user.firstName} {user.lastName}
                 </span>
               </div>

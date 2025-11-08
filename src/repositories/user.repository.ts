@@ -1,6 +1,6 @@
 import api from '@/lib/api'
+import { handleError } from '@/lib/error-handler'
 import type { User } from '@/types/auth.types'
-import { AxiosError } from 'axios'
 
 export class UserRepository {
   /**
@@ -15,7 +15,6 @@ export class UserRepository {
         return []
       }
 
-      console.log('Searching users with query:', query)
       const response = await api.get<{ results: User[] }>(
         '/users/autocomplete',
         {
@@ -26,14 +25,9 @@ export class UserRepository {
         }
       )
 
-      console.log('Search response:', response.data)
       return response.data.results || []
     } catch (error: unknown) {
-      if (error instanceof AxiosError) {
-        console.error('User search error:', error.message, error.response?.data)
-      } else {
-        console.error('User search error:', error)
-      }
+      console.error('User search error:', error)
       return []
     }
   }
@@ -43,16 +37,10 @@ export class UserRepository {
    * Currently falls back to search with empty query or returns empty array
    * Note: baseURL already includes /api prefix
    */
-  async getAllUsers(limit: number = 50): Promise<User[]> {
-    try {
-      console.log('Fetching all users with limit:', limit)
-      // For now, return empty array as there's no dedicated getAllUsers endpoint
-      // Autocomplete works when user types characters
-      return []
-    } catch (error: unknown) {
-      console.error('Failed to fetch users:', error)
-      return []
-    }
+  async getAllUsers(): Promise<User[]> {
+    // For now, return empty array as there's no dedicated getAllUsers endpoint
+    // Autocomplete works when user types characters
+    return []
   }
 }
 
