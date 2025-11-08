@@ -90,3 +90,25 @@ export interface CommentUnlikedMessage extends WebSocketMessage {
   }
   timestamp: string
 }
+
+export interface UserMentionedMessage extends WebSocketMessage {
+  type: 'user-mentioned'
+  data: {
+    mentionId: string
+    postId: string
+    mentionedUserId: string
+    mentionerUserId: string
+    post: {
+      id: string
+      content: string
+      userId: string
+    }
+    mentionerUser?: {
+      id: string
+      firstName: string
+      lastName: string
+      username: string
+    }
+    createdAt: string
+  }
+}

@@ -12,9 +12,11 @@ import type {
   CommentUpdatedMessage,
   CommentLikedMessage,
   CommentUnlikedMessage,
+  UserMentionedMessage,
 } from '@/types/websocket.types'
 import { UserRegisteredNotification } from '@/components/notifications/UserRegisteredNotification'
 import { CommentNotification } from '@/components/notifications/CommentNotification'
+import { MentionNotification } from '@/components/notifications/MentionNotification'
 import { useAuth } from '@/hooks/use-auth'
 import { useIsMobile } from '@/hooks/use-mobile'
 
@@ -37,7 +39,18 @@ interface CommentNotificationData {
   postId: string
 }
 
-type UnifiedNotification = NotificationData | CommentNotificationData
+interface MentionNotificationData {
+  id: string
+  type: 'user-mentioned'
+  userName: string
+  postId: string
+  mentionerUserId: string
+}
+
+type UnifiedNotification =
+  | NotificationData
+  | CommentNotificationData
+  | MentionNotificationData
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
   const [isConnected, setIsConnected] = useState(false)
@@ -251,6 +264,20 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
           // Ignore dispatch errors
         }
       }
+
+      if (data.type === 'user-mentioned') {
+        const message = data as UserMentionedMessage
+
+        if (user && message.data.mentionedUserId === user.id) {
+          addNotification({
+            id: `mention-${message.data.mentionId}`,
+            type: 'user-mentioned',
+            userName: message.data.mentionerUser?.username || 'Someone',
+            postId: message.data.postId,
+            mentionerUserId: message.data.mentionerUserId,
+          })
+        }
+      }
     })
 
     return () => {
@@ -305,6 +332,14 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
               )}
               {notif.type === 'comment-created' && (
                 <CommentNotification
+                  userName={notif.userName}
+                  postId={notif.postId}
+                  onSeePost={handleSeePost}
+                  onDismiss={() => handleDismissNotification(notif.id)}
+                />
+              )}
+              {notif.type === 'user-mentioned' && (
+                <MentionNotification
                   userName={notif.userName}
                   postId={notif.postId}
                   onSeePost={handleSeePost}

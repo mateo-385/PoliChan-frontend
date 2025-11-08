@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { Spinner } from '@/components/ui/spinner'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { MentionAutocomplete } from '@/components/posts/MentionAutocomplete'
+import type { User } from '@/types/auth.types'
 
 const MAX_POST_LENGTH = 280
 const MIN_POST_LENGTH = 1
@@ -29,7 +31,145 @@ export function PostSubmissionForm({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [lastPostTime, setLastPostTime] = useState<number | null>(null)
+  const [mentionQuery, setMentionQuery] = useState<string>('')
+  const [showMentionAutocomplete, setShowMentionAutocomplete] = useState(false)
+  const [cursorPosition, setCursorPosition] = useState(0)
+  const [autocompletePosition, setAutocompletePosition] = useState({
+    top: 0,
+    left: 0,
+  })
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const isMobile = useIsMobile()
+
+  /**
+   * Detect @ mentions in the text
+   * When user types @something, show autocomplete
+   */
+  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value
+    const cursorPos = e.target.selectionStart
+
+    setNewPostContent(text)
+    setCursorPosition(cursorPos)
+
+    // Find the last @ symbol before cursor
+    const textBeforeCursor = text.substring(0, cursorPos)
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@')
+
+    console.log('handleTextChange:', {
+      text,
+      cursorPos,
+      lastAtIndex,
+      textBeforeCursor,
+    })
+
+    if (lastAtIndex === -1) {
+      setShowMentionAutocomplete(false)
+      setMentionQuery('')
+      return
+    }
+
+    // Check if there's a space before @ (to avoid matching @mentions mid-word)
+    if (
+      lastAtIndex > 0 &&
+      text[lastAtIndex - 1] !== ' ' &&
+      text[lastAtIndex - 1] !== '\n'
+    ) {
+      setShowMentionAutocomplete(false)
+      setMentionQuery('')
+      return
+    }
+
+    // Extract query after @
+    const query = textBeforeCursor.substring(lastAtIndex + 1)
+
+    console.log('Query:', query, 'Valid:', /^[a-zA-Z0-9_]*$/.test(query))
+
+    // Only show autocomplete if query is alphanumeric/underscore and less than 30 chars
+    if (/^[a-zA-Z0-9_]*$/.test(query) && query.length < 30) {
+      setMentionQuery(query)
+      setShowMentionAutocomplete(true)
+
+      // Calculate position for autocomplete popup
+      if (textareaRef.current) {
+        const textarea = textareaRef.current
+        const metrics = textarea.getBoundingClientRect()
+        const lineHeight = parseInt(
+          window.getComputedStyle(textarea).lineHeight
+        )
+
+        // Rough calculation of cursor position
+        // This is approximate - the exact calculation would require canvas measurement
+        const lines = textBeforeCursor.split('\n').length - 1
+        const topOffset = lines * lineHeight + 30
+
+        const top = Math.floor(metrics.top + topOffset)
+        const left = Math.floor(metrics.left + 10)
+
+        console.log('Autocomplete position:', {
+          top,
+          left,
+          metrics,
+          lineHeight,
+          lines,
+        })
+
+        setAutocompletePosition({
+          top,
+          left,
+        })
+      }
+    } else {
+      setShowMentionAutocomplete(false)
+      setMentionQuery('')
+    }
+  }
+
+  /**
+   * Handle keyboard events in the textarea
+   * No longer needed as MentionAutocomplete handles keyboard events globally
+   */
+  const handleTextKeyDown = () => {
+    // Keyboard navigation is now handled by MentionAutocomplete component
+    // This handler is kept for potential future use
+  }
+
+  /**
+   * Handle user selection from mention autocomplete
+   */
+  const handleSelectMentionedUser = (selectedUser: User) => {
+    const cursorPos = cursorPosition
+
+    if (!textareaRef.current) return
+
+    const text = newPostContent
+    const textBeforeCursor = text.substring(0, cursorPos)
+    const textAfterCursor = text.substring(cursorPos)
+
+    // Find the last @ symbol
+    const lastAtIndex = textBeforeCursor.lastIndexOf('@')
+
+    if (lastAtIndex === -1) return
+
+    // Replace from @ to cursor with @username
+    const beforeAt = text.substring(0, lastAtIndex)
+    const mention = `@${selectedUser.username}`
+    const newContent = beforeAt + mention + ' ' + textAfterCursor
+
+    setNewPostContent(newContent)
+    setShowMentionAutocomplete(false)
+    setMentionQuery('')
+
+    // Move cursor after the inserted mention
+    setTimeout(() => {
+      if (textareaRef.current) {
+        const newCursorPos = lastAtIndex + mention.length + 1
+        textareaRef.current.selectionStart = newCursorPos
+        textareaRef.current.selectionEnd = newCursorPos
+        textareaRef.current.focus()
+      }
+    }, 0)
+  }
 
   const sanitizeContent = (content: string): string => {
     let sanitized = content
@@ -144,6 +284,7 @@ export function PostSubmissionForm({
         }
       >
         <textarea
+          ref={textareaRef}
           className={
             isMobile
               ? 'w-full bg-background border rounded-md p-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary'
@@ -152,9 +293,18 @@ export function PostSubmissionForm({
           placeholder={placeholder}
           rows={isMobile ? 3 : 4}
           value={newPostContent}
-          onChange={(e) => setNewPostContent(e.target.value)}
+          onChange={handleTextChange}
+          onKeyDown={handleTextKeyDown}
           disabled={isSubmitting}
           maxLength={MAX_POST_LENGTH}
+        />
+        <MentionAutocomplete
+          isOpen={showMentionAutocomplete}
+          query={mentionQuery}
+          onSelectUser={handleSelectMentionedUser}
+          onClose={() => setShowMentionAutocomplete(false)}
+          currentUserId={user?.id}
+          position={autocompletePosition}
         />
         <div
           className={

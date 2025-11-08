@@ -1,11 +1,13 @@
 import { Heart } from 'lucide-react'
+import { useState, useEffect } from 'react'
 import { postService } from '@/services/post.service'
+import { mentionsRepository } from '@/repositories/mentions.repository'
 import { getAvatarColor, getInitials } from '@/lib/avatar'
 import { useLike } from '@/hooks/use-like'
 import { useAuth } from '@/hooks/use-auth'
 import { useIsMobile } from '@/hooks/use-mobile'
-import { useEffect } from 'react'
 import type { Comment } from '@/types/post.types'
+import { MentionText } from './MentionText'
 
 interface CommentCardProps {
   comment: Comment
@@ -16,6 +18,7 @@ interface CommentCardProps {
 export function CommentCard({ comment }: CommentCardProps) {
   const { user } = useAuth()
   const isMobile = useIsMobile()
+  const [validMentions, setValidMentions] = useState<string[]>([])
 
   const { isLiked, count, toggleLike, setCount } = useLike({
     initialLiked: comment.likedByCurrentUser ?? false,
@@ -72,6 +75,32 @@ export function CommentCard({ comment }: CommentCardProps) {
     // setCount and setIsLiked are stable setState functions and don't need to be in deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comment.id, user?.id])
+
+  // Fetch valid mentions for this comment
+  useEffect(() => {
+    const fetchMentions = async () => {
+      try {
+        // Comments might not have a mentions endpoint, so we'll get mentions for the post instead
+        const response = await mentionsRepository.getPostMentions(
+          comment.postId
+        )
+        // Extract unique usernames from mentions
+        const usernames = [
+          ...new Set(
+            response.mentions
+              .map((m) => m.mentionedUser?.username)
+              .filter(Boolean) as string[]
+          ),
+        ]
+        setValidMentions(usernames)
+      } catch (error) {
+        console.error('Failed to fetch mentions:', error)
+        setValidMentions([])
+      }
+    }
+
+    fetchMentions()
+  }, [comment.postId])
 
   const firstName = comment.user?.firstName || ''
   const lastName = comment.user?.lastName || ''
@@ -140,7 +169,7 @@ export function CommentCard({ comment }: CommentCardProps) {
             : 'mt-2 text-foreground text-sm leading-relaxed whitespace-pre-wrap break-all'
         }
       >
-        {comment.content}
+        <MentionText content={comment.content} validMentions={validMentions} />
       </p>
       <div
         className={

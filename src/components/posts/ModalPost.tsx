@@ -6,6 +6,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { postService } from '@/services/post.service'
+import { mentionsRepository } from '@/repositories/mentions.repository'
 import type { PostWithComments } from '@/types/post.types'
 import { DialogOverlay } from '@radix-ui/react-dialog'
 import { useEffect, useState, useCallback } from 'react'
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Heart, MessageCircle, RefreshCw } from 'lucide-react'
 import { PostSubmissionForm } from '@/components/posts'
 import { CommentCard } from '@/components/posts/CommentCard'
+import { MentionText } from '@/components/posts/MentionText'
 import { useAuth } from '@/hooks/use-auth'
 import { useLike } from '@/hooks/use-like'
 import { getAvatarColor, getInitials } from '@/lib/avatar'
@@ -33,6 +35,7 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
   const [newCommentId, setNewCommentId] = useState<string | null>(null)
   const [hasNewComments, setHasNewComments] = useState(false)
   const [isLoadingNewComments, setIsLoadingNewComments] = useState(false)
+  const [validMentions, setValidMentions] = useState<string[]>([])
   const { user } = useAuth()
   const isMobile = useIsMobile()
 
@@ -77,6 +80,33 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
       loadPost()
     }
   }, [isOpen, loadPost, postId])
+
+  // Fetch valid mentions when post data is loaded
+  useEffect(() => {
+    if (!postData?.post.id) return
+
+    const fetchMentions = async () => {
+      try {
+        const response = await mentionsRepository.getPostMentions(
+          postData.post.id
+        )
+        // Extract unique usernames from mentions
+        const usernames = [
+          ...new Set(
+            response.mentions
+              .map((m) => m.mentionedUser?.username)
+              .filter(Boolean) as string[]
+          ),
+        ]
+        setValidMentions(usernames)
+      } catch (error) {
+        console.error('Failed to fetch mentions:', error)
+        setValidMentions([])
+      }
+    }
+
+    fetchMentions()
+  }, [postData?.post.id])
 
   useEffect(() => {
     if (!isMobile || !isOpen) return
@@ -392,7 +422,10 @@ export function ModalPost({ isOpen, onClose, postId }: ModalPostProps) {
                         : 'mt-3 text-foreground text-base leading-relaxed whitespace-pre-wrap break-all'
                     }
                   >
-                    {postData.post.content}
+                    <MentionText
+                      content={postData.post.content}
+                      validMentions={validMentions}
+                    />
                   </p>
                   <div className="flex items-center gap-6 mt-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
