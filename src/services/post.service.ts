@@ -41,25 +41,16 @@ class PostService {
   }
 
   /**
-   * Fetch mentions for multiple posts in parallel with timeout
-   * If mentions take too long, return posts without mentions to prevent loading delay
+   * Fetch mentions for multiple posts in parallel
+   * Waits until ALL mentions are fetched and attached before returning
+   * Posts won't be displayed until mentions styling is ready
    */
   private async attachMentionsToMultiplePosts(posts: Post[]): Promise<Post[]> {
-    // Create a promise that resolves after 2 seconds (timeout)
-    const timeoutPromise = new Promise<Post[]>((resolve) => {
-      setTimeout(() => {
-        // After 2 seconds, return posts with whatever mentions we have so far
-        resolve(posts)
-      }, 2000)
-    })
-
-    // Fetch all mentions in parallel
-    const mentionsFetchPromise = Promise.all(
+    // Fetch all mentions in parallel and wait for all to complete
+    const postsWithMentions = await Promise.all(
       posts.map((post) => this.fetchAndAttachMentions(post))
     )
-
-    // Return whichever completes first: all mentions fetched OR 2 second timeout
-    return Promise.race([mentionsFetchPromise, timeoutPromise])
+    return postsWithMentions
   }
 
   // ===== QUERIES (Read Operations) =====
